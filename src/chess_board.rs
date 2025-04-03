@@ -1,3 +1,4 @@
+use crate::chess_move::Move;
 use std::fmt;
 use std::fmt::Formatter;
 
@@ -115,8 +116,9 @@ impl ChessBoard {
         Self { pieces: board }
     }
 
-    pub fn move_piece(&mut self, from: (usize, usize), to: (usize, usize)) {
-        self.pieces[to.0][to.1] = self.pieces[from.0][from.1];
-        self.pieces[from.0][from.1] = Cell::Empty;
+    pub fn move_piece(&mut self, uci: &str) {
+        let mov = Move::from_uci_string(uci);
+        self.pieces[mov.to.0][mov.to.1] = self.pieces[mov.from.0][mov.from.1];
+        self.pieces[mov.from.0][mov.from.1] = Cell::Empty;
     }
 }
