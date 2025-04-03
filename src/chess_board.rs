@@ -1,8 +1,9 @@
 use crate::chess_move::Move;
+use std::cmp::PartialEq;
 use std::fmt;
 use std::fmt::Formatter;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 enum PieceKind {
     Pawn,
     Rook,
@@ -12,13 +13,13 @@ enum PieceKind {
     King,
 }
 
-#[derive(Clone, Copy)]
-enum Color {
+#[derive(Clone, Copy, PartialEq)]
+pub enum Color {
     White,
     Black,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 struct Piece {
     kind: PieceKind,
     color: Color,
@@ -46,29 +47,29 @@ impl fmt::Display for Piece {
     }
 }
 
-#[derive(Copy, Clone)]
-enum Cell {
+#[derive(Copy, Clone, PartialEq)]
+enum Square {
     Empty,
     Occupied(Piece),
 }
 
-impl fmt::Display for Cell {
+impl fmt::Display for Square {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Cell::Empty => write!(f, "-"),
-            Cell::Occupied(piece) => write!(f, "{}", piece),
+            Square::Empty => write!(f, "-"),
+            Square::Occupied(piece) => write!(f, "{}", piece),
         }
     }
 }
 
 #[derive(Clone, Copy)]
 pub struct ChessBoard {
-    pieces: [[Cell; 8]; 8],
+    squares: [[Square; 8]; 8],
 }
 
 impl fmt::Display for ChessBoard {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        for row in &self.pieces {
+        for row in &self.squares {
             for cell in row {
                 write!(f, " {}", cell)?;
             }
@@ -80,13 +81,13 @@ impl fmt::Display for ChessBoard {
 
 impl ChessBoard {
     pub fn initial_board() -> Self {
-        let mut board = [[Cell::Empty; 8]; 8];
+        let mut board = [[Square::Empty; 8]; 8];
         for i in 0..8 {
-            board[1][i] = Cell::Occupied(Piece {
+            board[1][i] = Square::Occupied(Piece {
                 kind: PieceKind::Pawn,
                 color: Color::White,
             });
-            board[6][i] = Cell::Occupied(Piece {
+            board[6][i] = Square::Occupied(Piece {
                 kind: PieceKind::Pawn,
                 color: Color::Black,
             });
@@ -104,21 +105,118 @@ impl ChessBoard {
                 7 => PieceKind::Rook,
                 _ => unreachable!(),
             };
-            board[0][i] = Cell::Occupied(Piece {
+            board[0][i] = Square::Occupied(Piece {
                 kind,
                 color: Color::White,
             });
-            board[7][i] = Cell::Occupied(Piece {
+            board[7][i] = Square::Occupied(Piece {
                 kind,
                 color: Color::Black,
             });
         }
-        Self { pieces: board }
+        Self { squares: board }
     }
 
     pub fn move_piece(&mut self, uci: &str) {
         let mov = Move::from_uci_string(uci);
-        self.pieces[mov.to.0][mov.to.1] = self.pieces[mov.from.0][mov.from.1];
-        self.pieces[mov.from.0][mov.from.1] = Cell::Empty;
+        self.squares[mov.to.0][mov.to.1] = self.squares[mov.from.0][mov.from.1];
+        self.squares[mov.from.0][mov.from.1] = Square::Empty;
+    }
+
+    fn for_each_piece<F>(&self, mut block: F)
+    where
+        F: FnMut(usize, usize, &Piece),
+    {
+        for i in 0..8 {
+            for j in 0..8 {
+                match self.squares[i][j] {
+                    Square::Empty => {}
+                    Square::Occupied(piece) => {
+                        block(i, j, &piece);
+                    }
+                }
+            }
+        }
+    }
+
+    fn pawn_valid_moves(&self, i: usize, j: usize, color: &Color) -> Vec<Move> {
+        let mut moves = Vec::new();
+        match color {
+            Color::White => {
+                if self.squares[i + 1][j] == Square::Empty {
+                    moves.push(Move {
+                        from: (i, j),
+                        to: (i + 1, j),
+                    });
+                    if i == 1 && self.squares[i + 2][j] == Square::Empty {
+                        moves.push(Move {
+                            from: (i, j),
+                            to: (i + 2, j),
+                        });
+                    }
+                }
+                if j < 7 {
+                    match self.squares[i + 1][j + 1] {
+                        Square::Occupied(other_piece) => {
+                            if other_piece.color != *color {
+                                moves.push(Move {
+                                    from: (i, j),
+                                    to: (i + 1, j + 1),
+                                });
+                            }
+                        }
+                        Square::Empty => {}
+                    }
+                }
+                if j > 0 {
+                    match self.squares[i + 1][j - 1] {
+                        Square::Occupied(other_piece) => {
+                            if other_piece.color != *color {
+                                moves.push(Move {
+                                    from: (i, j),
+                                    to: (i + 1, j - 1),
+                                });
+                            }
+                        }
+                        Square::Empty => {}
+                    }
+                }
+            }
+            Color::Black => {
+                todo!()
+            }
+        }
+        moves
+    }
+
+    fn piece_valid_moves(&self, i: usize, j: usize, piece: &Piece) -> Vec<Move> {
+        match piece.kind {
+            PieceKind::Pawn => self.pawn_valid_moves(i, j, &piece.color),
+            _ => Vec::new(), // PieceKind::Rook => { Vec::new() }
+            // PieceKind::Knight => {}
+            // PieceKind::Bishop => {}
+            // PieceKind::Queen => {}
+            // PieceKind::King => {}
+        }
+    }
+
+    pub fn all_valid_moves(&self, move_color: Color) -> Vec<Move> {
+        let mut moves = Vec::new();
+        self.for_each_piece(|i, j, piece| {
+            if piece.color == move_color {
+                let valid_moves = self.piece_valid_moves(i, j, piece);
+                println!(
+                    "{}: {}",
+                    piece,
+                    valid_moves
+                        .iter()
+                        .map(|m| m.to_uci_string())
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                );
+                moves.extend(valid_moves);
+            }
+        });
+        moves
     }
 }
