@@ -25,6 +25,36 @@ struct Piece {
     color: Color,
 }
 
+impl Piece {
+    fn white_pawn() -> Self {
+        Piece {
+            kind: PieceKind::Pawn,
+            color: Color::White,
+        }
+    }
+
+    fn white_queen() -> Self {
+        Piece {
+            kind: PieceKind::Queen,
+            color: Color::White,
+        }
+    }
+
+    fn black_pawn() -> Self {
+        Piece {
+            kind: PieceKind::Pawn,
+            color: Color::Black,
+        }
+    }
+
+    fn black_queen() -> Self {
+        Piece {
+            kind: PieceKind::Queen,
+            color: Color::Black,
+        }
+    }
+}
+
 impl fmt::Display for Piece {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let symbol = match (self.color, self.kind) {
@@ -119,8 +149,21 @@ impl ChessBoard {
 
     pub fn move_piece(&mut self, uci: &str) {
         let mov = Move::from_uci_string(uci);
-        self.squares[mov.to.0][mov.to.1] = self.squares[mov.from.0][mov.from.1];
+        let moving_piece = match self.squares[mov.from.0][mov.from.1] {
+            Square::Occupied(piece) => piece,
+            Square::Empty => panic!("Invalid move: Cannot move from empty square"),
+        };
+
+        let promoted_piece = if mov.to.0 == 7 && moving_piece == Piece::white_pawn() {
+            Piece::white_queen()
+        } else if mov.to.0 == 0 && moving_piece == Piece::black_pawn() {
+            Piece::black_queen()
+        } else {
+            moving_piece
+        };
+
         self.squares[mov.from.0][mov.from.1] = Square::Empty;
+        self.squares[mov.to.0][mov.to.1] = Square::Occupied(promoted_piece);
     }
 
     fn for_each_piece<F>(&self, mut block: F)
