@@ -243,7 +243,7 @@ impl ChessBoard {
                 from: (i as usize, j as usize),
                 to: ((i + dir) as usize, j as usize),
             });
-            if self.within_bounds_and_empty(i + 2 * dir, j) {
+            if self.within_bounds_and_empty(i + 2 * dir, j) && i == 4 - 3 * dir {
                 moves.push(Move {
                     from: (i as usize, j as usize),
                     to: ((i + 2 * dir) as usize, j as usize),
@@ -276,20 +276,13 @@ impl ChessBoard {
         }
     }
 
-    pub fn all_valid_moves(&self) -> Vec<Move> {
+    pub fn all_valid_moves(&self, color: Color) -> Vec<Move> {
         let mut moves = Vec::new();
         self.for_each_piece(|i, j, piece| {
+            if piece.color == color {
                 let valid_moves = self.piece_valid_moves(i, j, piece);
-                println!(
-                    "{}: {}",
-                    piece,
-                    valid_moves
-                        .iter()
-                        .map(|m| m.to_uci_string())
-                        .collect::<Vec<_>>()
-                        .join(" ")
-                );
                 moves.extend(valid_moves);
+            }
         });
         moves
     }
