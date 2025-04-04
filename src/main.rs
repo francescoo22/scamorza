@@ -1,5 +1,6 @@
 mod chess_board;
 mod chess_move;
+mod chess_piece;
 
 fn main() {
     let mut board = chess_board::ChessBoard::initial_board();
@@ -14,7 +15,7 @@ fn main() {
     board.move_piece("a2a4");
     println!("{}", board);
     board.all_valid_moves();
-    board.move_piece("d7d5");
+    board.move_piece("b7b5");
     println!("{}", board);
     board.all_valid_moves();
 }
