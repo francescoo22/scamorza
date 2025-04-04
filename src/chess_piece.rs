@@ -1,5 +1,6 @@
 use std::fmt;
 use std::fmt::Formatter;
+use std::ops::Not;
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum PieceKind {
@@ -15,6 +16,17 @@ pub enum PieceKind {
 pub enum Color {
     White,
     Black,
+}
+
+impl Not for Color {
+    type Output = Color;
+
+    fn not(self) -> Self {
+        match self {
+            Color::White => Color::Black,
+            Color::Black => Color::White,
+        }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq)]
