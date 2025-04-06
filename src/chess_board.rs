@@ -5,7 +5,7 @@ use std::fmt;
 use std::fmt::Formatter;
 
 #[derive(Copy, Clone, PartialEq)]
-enum Square {
+pub enum Square {
     Empty,
     Occupied(Piece),
 }
@@ -21,7 +21,7 @@ impl fmt::Display for Square {
 
 #[derive(Clone, Copy)]
 pub struct ChessBoard {
-    squares: [[Square; 8]; 8],
+    pub(crate) squares: [[Square; 8]; 8],
 }
 
 fn within_bounds(i: i32, j: i32) -> bool {
@@ -134,7 +134,7 @@ impl ChessBoard {
         color: &Color,
         directions: &Vec<(i32, i32)>,
     ) -> Vec<Move> {
-        let mut moves = Vec::new();
+        let mut moves: Vec<Move> = Vec::new();
         for (dx, dy) in directions {
             let mut dist = 1;
             while self.within_bounds_and_empty(i + dist * dy, j + dist * dx) {
@@ -153,7 +153,6 @@ impl ChessBoard {
                 });
             }
         }
-
         moves
     }
 
@@ -195,6 +194,7 @@ impl ChessBoard {
     }
 
     fn king_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
+        // todo: castle
         let dirs = vec![
             (1, 0),
             (0, 1),
@@ -233,6 +233,7 @@ impl ChessBoard {
     }
 
     fn pawn_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
+        // todo: en-passant
         let mut moves = Vec::new();
         let dir = match color {
             Color::White => 1,
@@ -276,7 +277,7 @@ impl ChessBoard {
         }
     }
 
-    pub fn all_valid_moves(&self, color: Color) -> Vec<Move> {
+    pub fn all_possible_moves(&self, color: Color) -> Vec<Move> {
         let mut moves = Vec::new();
         self.for_each_piece(|i, j, piece| {
             if piece.color == color {
@@ -285,5 +286,42 @@ impl ChessBoard {
             }
         });
         moves
+    }
+
+    fn filter_moves_when_king_is_checked(&self, moves: Vec<Move>, color: Color) -> Vec<Move> {
+        if self.is_king_checked(color) {
+            moves
+                .into_iter()
+                .filter(|mov| self.piece_at_source(mov).kind == PieceKind::King)
+                .collect()
+        } else {
+            moves
+        }
+    }
+
+    fn filter_king_going_under_check(&self, moves: Vec<Move>) -> Vec<Move> {
+        moves
+            .iter()
+            .filter(|mov| {
+                let piece = self.piece_at_source(mov);
+                let mut board_after_move = self.clone();
+                board_after_move.move_piece(&mov.to_uci_string());
+                !board_after_move.is_king_checked(piece.color)
+            })
+            .copied()
+            .collect()
+    }
+
+    pub fn all_valid_moves(&self, color: Color) -> Vec<Move> {
+        let moves = self.all_possible_moves(color);
+        let moves_when_king_is_checked = self.filter_moves_when_king_is_checked(moves, color);
+        self.filter_king_going_under_check(moves_when_king_is_checked)
+    }
+
+    pub fn piece_at_source(self, mov: &Move) -> Piece {
+        match self.squares[mov.from.0][mov.from.1] {
+            Square::Occupied(piece) => piece,
+            Square::Empty => panic!("Invalid move: Cannot move from empty square"),
+        }
     }
 }

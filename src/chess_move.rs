@@ -1,5 +1,6 @@
 use regex::Regex;
 
+#[derive(Copy, Clone, Debug)]
 pub struct Move {
     pub from: (usize, usize),
     pub to: (usize, usize),
