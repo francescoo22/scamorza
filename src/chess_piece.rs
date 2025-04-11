@@ -50,6 +50,34 @@ impl Piece {
         }
     }
 
+    pub(crate) fn white_king() -> Self {
+        Piece {
+            kind: PieceKind::King,
+            color: Color::White,
+        }
+    }
+
+    pub(crate) fn white_rook() -> Self {
+        Piece {
+            kind: PieceKind::Rook,
+            color: Color::White,
+        }
+    }
+
+    pub(crate) fn white_knight() -> Self {
+        Piece {
+            kind: PieceKind::Knight,
+            color: Color::White,
+        }
+    }
+
+    pub(crate) fn white_bishop() -> Self {
+        Piece {
+            kind: PieceKind::Bishop,
+            color: Color::White,
+        }
+    }
+
     pub(crate) fn black_pawn() -> Self {
         Piece {
             kind: PieceKind::Pawn,
@@ -60,6 +88,33 @@ impl Piece {
     pub(crate) fn black_queen() -> Self {
         Piece {
             kind: PieceKind::Queen,
+            color: Color::Black,
+        }
+    }
+    pub(crate) fn black_king() -> Self {
+        Piece {
+            kind: PieceKind::King,
+            color: Color::Black,
+        }
+    }
+
+    pub(crate) fn black_rook() -> Self {
+        Piece {
+            kind: PieceKind::Rook,
+            color: Color::Black,
+        }
+    }
+
+    pub(crate) fn black_knight() -> Self {
+        Piece {
+            kind: PieceKind::Knight,
+            color: Color::Black,
+        }
+    }
+
+    pub(crate) fn black_bishop() -> Self {
+        Piece {
+            kind: PieceKind::Bishop,
             color: Color::Black,
         }
     }

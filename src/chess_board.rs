@@ -3,6 +3,7 @@ use crate::chess_piece::{Color, Piece, PieceKind};
 use std::cmp::PartialEq;
 use std::fmt;
 use std::fmt::Formatter;
+use std::str::FromStr;
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum Square {
@@ -22,6 +23,7 @@ impl fmt::Display for Square {
 #[derive(Clone, Copy)]
 pub struct ChessBoard {
     squares: [[Square; 8]; 8],
+    side_to_move: Color,
 }
 
 fn within_bounds(i: i32, j: i32) -> bool {
@@ -41,43 +43,6 @@ impl fmt::Display for ChessBoard {
 }
 
 impl ChessBoard {
-    pub fn initial_board() -> Self {
-        let mut board = [[Square::Empty; 8]; 8];
-        for i in 0..8 {
-            board[1][i] = Square::Occupied(Piece {
-                kind: PieceKind::Pawn,
-                color: Color::White,
-            });
-            board[6][i] = Square::Occupied(Piece {
-                kind: PieceKind::Pawn,
-                color: Color::Black,
-            });
-        }
-
-        for i in 0..8 {
-            let kind = match i {
-                0 => PieceKind::Rook,
-                1 => PieceKind::Knight,
-                2 => PieceKind::Bishop,
-                3 => PieceKind::King,
-                4 => PieceKind::Queen,
-                5 => PieceKind::Bishop,
-                6 => PieceKind::Knight,
-                7 => PieceKind::Rook,
-                _ => unreachable!(),
-            };
-            board[0][i] = Square::Occupied(Piece {
-                kind,
-                color: Color::White,
-            });
-            board[7][i] = Square::Occupied(Piece {
-                kind,
-                color: Color::Black,
-            });
-        }
-        Self { squares: board }
-    }
-
     pub(crate) fn for_each_piece<F>(&self, mut block: F)
     where
         F: FnMut(i32, i32, &Piece),
@@ -126,5 +91,116 @@ impl ChessBoard {
             Square::Occupied(piece) => piece,
             Square::Empty => panic!("Invalid move: Cannot move from empty square"),
         }
+    }
+
+    pub fn new_turn(&self) -> Color {
+        !self.side_to_move
+    }
+
+    pub fn side_to_move(&self) -> Color {
+        self.side_to_move
+    }
+}
+
+impl Default for ChessBoard {
+    fn default() -> Self {
+        let mut board = [[Square::Empty; 8]; 8];
+        for i in 0..8 {
+            board[1][i] = Square::Occupied(Piece {
+                kind: PieceKind::Pawn,
+                color: Color::White,
+            });
+            board[6][i] = Square::Occupied(Piece {
+                kind: PieceKind::Pawn,
+                color: Color::Black,
+            });
+        }
+
+        for i in 0..8 {
+            let kind = match i {
+                0 => PieceKind::Rook,
+                1 => PieceKind::Knight,
+                2 => PieceKind::Bishop,
+                3 => PieceKind::King,
+                4 => PieceKind::Queen,
+                5 => PieceKind::Bishop,
+                6 => PieceKind::Knight,
+                7 => PieceKind::Rook,
+                _ => unreachable!(),
+            };
+            board[0][i] = Square::Occupied(Piece {
+                kind,
+                color: Color::White,
+            });
+            board[7][i] = Square::Occupied(Piece {
+                kind,
+                color: Color::Black,
+            });
+        }
+        Self {
+            squares: board,
+            side_to_move: Color::White,
+        }
+    }
+}
+
+impl FromStr for ChessBoard {
+    type Err = String;
+
+    fn from_str(fen: &str) -> Result<Self, Self::Err> {
+        let mut board = [[Square::Empty; 8]; 8];
+
+        let parts = fen.split(" ").collect::<Vec<&str>>();
+        assert_eq!(parts.len(), 6, "Invalid FEN, expected 6 parts");
+
+        let rows = parts[0].split("/").collect::<Vec<&str>>();
+        assert_eq!(rows.len(), 8, "Invalid FEN, expected 8 rows");
+
+        for (i, row) in rows.iter().enumerate() {
+            let mut j = 0;
+            for c in row.chars() {
+                match c {
+                    '1'..='8' => {
+                        j += c as usize - '0' as usize;
+                    }
+                    _ => {
+                        let piece = match c {
+                            'P' => Piece::white_pawn(),
+                            'N' => Piece::white_knight(),
+                            'B' => Piece::white_bishop(),
+                            'R' => Piece::white_rook(),
+                            'Q' => Piece::white_queen(),
+                            'K' => Piece::white_king(),
+                            'p' => Piece::black_pawn(),
+                            'n' => Piece::black_knight(),
+                            'b' => Piece::black_bishop(),
+                            'r' => Piece::black_rook(),
+                            'q' => Piece::black_queen(),
+                            'k' => Piece::black_king(),
+                            _ => panic!(
+                                "Invalid FEN character, expected a piece representation (PNBRQKpnbrqk), found '{}'",
+                                c
+                            ),
+                        };
+                        board[7 - i][7 - j] = Square::Occupied(piece);
+                        j += 1;
+                    }
+                }
+            }
+        }
+
+        let side_to_move = match parts[1] {
+            "w" => Color::White,
+            "b" => Color::Black,
+            _ => panic!(
+                "Invalid FEN, expected 'w' or 'b' for side to move, found {}",
+                parts[1]
+            ),
+        };
+
+        Ok(Self {
+            squares: board,
+            side_to_move,
+        })
     }
 }

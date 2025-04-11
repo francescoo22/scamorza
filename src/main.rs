@@ -5,7 +5,7 @@ use rand::seq::IndexedRandom;
 use std::io;
 
 fn random_game() {
-    let mut board = chess_board::ChessBoard::initial_board();
+    let mut board = chess_board::ChessBoard::default();
     let mut rng = rng();
     let mut turn = Color::White;
     let mut game = 0;
@@ -28,7 +28,7 @@ fn random_game() {
                 } else {
                     println!("Stalemate!");
                 }
-                board = chess_board::ChessBoard::initial_board();
+                board = chess_board::ChessBoard::default();
                 turn = Color::White;
             }
             Some(mov) => {
@@ -36,7 +36,7 @@ fn random_game() {
                 board.move_piece_uci(&mov.to_uci_string());
                 if board.is_stalemate() {
                     println!("Stalemate!");
-                    board = chess_board::ChessBoard::initial_board();
+                    board = chess_board::ChessBoard::default();
                     turn = Color::White;
                     game += 1;
                 }
