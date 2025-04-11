@@ -288,17 +288,6 @@ impl ChessBoard {
         moves
     }
 
-    fn filter_moves_when_king_is_checked(&self, moves: Vec<Move>, color: Color) -> Vec<Move> {
-        if self.is_king_checked(color) {
-            moves
-                .into_iter()
-                .filter(|mov| self.piece_at_source(mov).kind == PieceKind::King)
-                .collect()
-        } else {
-            moves
-        }
-    }
-
     fn filter_king_going_under_check(&self, moves: Vec<Move>) -> Vec<Move> {
         moves
             .iter()
@@ -314,8 +303,7 @@ impl ChessBoard {
 
     pub fn all_valid_moves(&self, color: Color) -> Vec<Move> {
         let moves = self.all_possible_moves(color);
-        let moves_when_king_is_checked = self.filter_moves_when_king_is_checked(moves, color);
-        self.filter_king_going_under_check(moves_when_king_is_checked)
+        self.filter_king_going_under_check(moves)
     }
 
     pub fn piece_at_source(self, mov: &Move) -> Piece {
