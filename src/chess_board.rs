@@ -3,7 +3,6 @@ use crate::chess_piece::{Color, Piece, PieceKind};
 use std::cmp::PartialEq;
 use std::fmt;
 use std::fmt::Formatter;
-use std::ops::Not;
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum Square {
@@ -79,32 +78,6 @@ impl ChessBoard {
         Self { squares: board }
     }
 
-    pub fn move_piece(&mut self, mov: &Move) {
-        let moving_piece = match self.squares[mov.from.0][mov.from.1] {
-            Square::Occupied(piece) => piece,
-            Square::Empty => panic!("Invalid move: Cannot move from empty square"),
-        };
-
-        let promoted_piece = if mov.to.0 == 7 && moving_piece == Piece::white_pawn() {
-            Piece::white_queen()
-        } else if mov.to.0 == 0 && moving_piece == Piece::black_pawn() {
-            Piece::black_queen()
-        } else {
-            moving_piece
-        };
-
-        self.squares[mov.from.0][mov.from.1] = Square::Empty;
-        self.squares[mov.to.0][mov.to.1] = Square::Occupied(promoted_piece);
-    }
-
-    pub fn move_piece_uci(&mut self, uci: &str) {
-        let mov = Move::from_uci_string(uci);
-        self.move_piece(&mov);
-    }
-
-    pub fn move_piece_back(&mut self, mov: &Move) {
-        self.move_piece(&mov.not());
-    }
     fn for_each_piece<F>(&self, mut block: F)
     where
         F: FnMut(i32, i32, &Piece),
