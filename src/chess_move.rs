@@ -1,4 +1,5 @@
 use regex::Regex;
+use std::ops::Not;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Move {
@@ -30,5 +31,16 @@ impl Move {
         let to_row = char::from(self.to.0 as u8 + b'1');
         let to_col = char::from(b'h' - self.to.1 as u8);
         format!("{}{}{}{}", from_col, from_row, to_col, to_row)
+    }
+}
+
+impl Not for Move {
+    type Output = Move;
+
+    fn not(self) -> Self {
+        Move {
+            from: self.to,
+            to: self.from,
+        }
     }
 }

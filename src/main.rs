@@ -33,7 +33,7 @@ fn random_game() {
             }
             Some(mov) => {
                 println!("{}", random_move.unwrap().to_uci_string());
-                board.move_piece(&mov.to_uci_string());
+                board.move_piece_uci(&mov.to_uci_string());
                 if board.is_stalemate() {
                     println!("Stalemate!");
                     board = chess_board::ChessBoard::initial_board();
