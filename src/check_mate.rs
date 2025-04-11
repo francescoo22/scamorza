@@ -9,7 +9,7 @@ impl ChessBoard {
         });
         for i in 0..8 {
             for j in 0..8 {
-                if self.squares[i][j] == to_find {
+                if self.at(i, j) == to_find {
                     return (i as i32, j as i32);
                 }
             }
@@ -36,7 +36,7 @@ impl ChessBoard {
     pub fn is_stalemate(self) -> bool {
         for i in 0..8 {
             for j in 0..8 {
-                match self.squares[i][j] {
+                match self.at(i, j) {
                     Square::Occupied(piece) => { if piece.kind != PieceKind::King { return false; } },
                     _ => {}
                 }

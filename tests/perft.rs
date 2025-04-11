@@ -12,11 +12,11 @@ fn perft(depth: u8) -> u64 {
         } else {
             let mut res = 0;
             for mov in moves {
-                let prev_square = chess_board.squares[mov.to.0][mov.to.1];
+                let prev_square = chess_board.at(mov.to.0, mov.to.1);
                 chess_board.move_piece(&mov);
                 res += perft_rec(depth - 1, chess_board, !color);
                 chess_board.move_piece_back(&mov);
-                chess_board.squares[mov.to.0][mov.to.1] = prev_square;
+                chess_board.set_at(mov.to.0, mov.to.1, prev_square);
             }
             res
         }

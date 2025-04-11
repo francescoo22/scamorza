@@ -22,7 +22,7 @@ impl fmt::Display for Square {
 
 #[derive(Clone, Copy)]
 pub struct ChessBoard {
-    pub squares: [[Square; 8]; 8],
+    squares: [[Square; 8]; 8],
 }
 
 fn within_bounds(i: i32, j: i32) -> bool {
@@ -316,6 +316,14 @@ impl ChessBoard {
     pub fn all_valid_moves(&self, color: Color) -> Vec<Move> {
         let moves = self.all_possible_moves(color);
         self.filter_king_going_under_check(moves)
+    }
+
+    pub fn at(&self, i: usize, j: usize) -> Square {
+        self.squares[i][j]
+    }
+
+    pub fn set_at(&mut self, i: usize, j: usize, square: Square) {
+        self.squares[i][j] = square;
     }
 
     pub fn piece_at_source(self, mov: &Move) -> Piece {
