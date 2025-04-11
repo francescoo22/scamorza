@@ -1,12 +1,8 @@
-use crate::chess_piece::Color;
+use chess_engine_poc::chess_board;
+use chess_engine_poc::chess_piece::Color;
 use rand::rng;
 use rand::seq::IndexedRandom;
 use std::io;
-
-mod check_mate;
-mod chess_board;
-mod chess_move;
-mod chess_piece;
 
 fn random_game() {
     let mut board = chess_board::ChessBoard::initial_board();
