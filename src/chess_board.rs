@@ -239,12 +239,16 @@ impl ChessBoard {
             Color::White => 1,
             Color::Black => -1,
         };
+        let initial_row = match color {
+            Color::White => 1,
+            Color::Black => 6,
+        };
         if self.within_bounds_and_empty(i + dir, j) {
             moves.push(Move {
                 from: (i as usize, j as usize),
                 to: ((i + dir) as usize, j as usize),
             });
-            if self.within_bounds_and_empty(i + 2 * dir, j) && i == 4 - 3 * dir {
+            if self.within_bounds_and_empty(i + 2 * dir, j) && i == initial_row {
                 moves.push(Move {
                     from: (i as usize, j as usize),
                     to: ((i + 2 * dir) as usize, j as usize),
