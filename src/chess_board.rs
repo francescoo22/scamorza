@@ -29,6 +29,8 @@ pub struct ChessBoard {
     pub(crate) can_white_castle_queenside: bool,
     pub(crate) can_black_castle_kingside: bool,
     pub(crate) can_black_castle_queenside: bool,
+
+    pub(crate) en_passant_target_square: Option<(usize, usize)>,
 }
 
 fn within_bounds(i: i32, j: i32) -> bool {
@@ -77,6 +79,22 @@ impl ChessBoard {
         if !within_bounds(i, j) {
             return false;
         }
+
+        match self.squares[i as usize][j as usize] {
+            Square::Empty => false,
+            Square::Occupied(piece) => piece.color != *color,
+        }
+    }
+
+    pub(crate) fn within_bounds_and_pawn_take_target(&self, i: i32, j: i32, color: &Color) -> bool {
+        if !within_bounds(i, j) {
+            return false;
+        }
+
+        if self.en_passant_target_square == Some((i as usize, j as usize)) {
+            return true;
+        }
+
         match self.squares[i as usize][j as usize] {
             Square::Empty => false,
             Square::Occupied(piece) => piece.color != *color,
@@ -149,6 +167,7 @@ impl Default for ChessBoard {
             can_white_castle_kingside: true,
             can_black_castle_queenside: true,
             can_black_castle_kingside: true,
+            en_passant_target_square: None,
         }
     }
 }
@@ -212,6 +231,20 @@ impl FromStr for ChessBoard {
         let can_black_castle_queenside = parts[2].contains("q");
         let can_black_castle_kingside = parts[2].contains("k");
 
+        let en_passant_target_square = if parts[3] == "-" {
+            None
+        } else {
+            let col = (b'h' - parts[3].as_bytes()[0]) as usize;
+            let row = (parts[3].as_bytes()[1] - b'1') as usize;
+            if col < 0 || col > 7 || (row != 2 && row != 5) {
+                panic!(
+                    "Invalid FEN, en passant target square {} is not valid",
+                    parts[3]
+                )
+            }
+            Some((row, col))
+        };
+
         Ok(Self {
             squares: board,
             side_to_move,
@@ -219,6 +252,7 @@ impl FromStr for ChessBoard {
             can_white_castle_queenside,
             can_black_castle_kingside,
             can_black_castle_queenside,
+            en_passant_target_square,
         })
     }
 }

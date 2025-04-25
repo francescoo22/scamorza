@@ -161,12 +161,12 @@ impl ChessBoard {
                 moves.push(Move::base_move(from, to));
             }
         }
-        if self.within_bounds_and_occupied_by_opponent(i + dir, j + 1, color) {
+        if self.within_bounds_and_pawn_take_target(i + dir, j + 1, color) {
             let from = (i as usize, j as usize);
             let to = ((i + dir) as usize, (j + 1) as usize);
             moves.extend(Self::maybe_promotion_moves(from, to, color));
         }
-        if self.within_bounds_and_occupied_by_opponent(i + dir, j - 1, color) {
+        if self.within_bounds_and_pawn_take_target(i + dir, j - 1, color) {
             let from = (i as usize, j as usize);
             let to = ((i + dir) as usize, (j - 1) as usize);
             moves.extend(Self::maybe_promotion_moves(from, to, color));

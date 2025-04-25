@@ -60,9 +60,15 @@ impl Move {
                     PieceKind::Knight => 'n',
                     PieceKind::Bishop => 'b',
                     PieceKind::Queen => 'q',
-                    _ => panic!("Invalid move, promoted piece cannot be of kind {:?}", piece_kind),
+                    _ => panic!(
+                        "Invalid move, promoted piece cannot be of kind {:?}",
+                        piece_kind
+                    ),
                 };
-                format!("{}{}{}{}{}", from_col, from_row, to_col, to_row, piece_kind_char)
+                format!(
+                    "{}{}{}{}{}",
+                    from_col, from_row, to_col, to_row, piece_kind_char
+                )
             }
         }
     }
@@ -107,6 +113,31 @@ impl ChessBoard {
         }
     }
 
+    fn remove_piece_after_en_passant(&mut self, mov: &Move, moving_piece: &Piece) {
+        match (moving_piece.kind, self.en_passant_target_square) {
+            (PieceKind::Pawn, Some(en_passant_square)) => {
+                if mov.to == en_passant_square {
+                    self.set_at(mov.from.0, en_passant_square.1, Square::Empty)
+                }
+            }
+            _ => {}
+        }
+    }
+
+    fn update_en_passant_target_square(&mut self, mov: &Move, moving_piece: &Piece) {
+        match moving_piece.kind {
+            PieceKind::Pawn => {
+                let move_length = mov.from.0.abs_diff(mov.to.0);
+                if move_length == 1 {
+                    self.en_passant_target_square = None
+                } else {
+                    self.en_passant_target_square = Some(((mov.from.0 + mov.to.0) / 2, mov.to.1))
+                }
+            }
+            _ => self.en_passant_target_square = None,
+        }
+    }
+
     pub fn move_piece(&mut self, mov: &Move) {
         let moving_piece = match self.at(mov.from.0, mov.from.1) {
             Square::Occupied(piece) => piece,
@@ -114,16 +145,18 @@ impl ChessBoard {
         };
 
         self.castle_invalidation(mov);
+        self.move_rook_if_castle(mov, &moving_piece);
+        self.remove_piece_after_en_passant(mov, &moving_piece);
+        self.update_en_passant_target_square(mov, &moving_piece);
 
         let promoted_piece = match mov.promoted_piece_kind {
             None => moving_piece,
             Some(promoted_piece_kind) => Piece {
                 color: moving_piece.color,
                 kind: promoted_piece_kind,
-            }
+            },
         };
 
-        self.move_rook_if_castle(mov, &moving_piece);
 
         self.set_at(mov.from.0, mov.from.1, Square::Empty);
         self.set_at(mov.to.0, mov.to.1, Square::Occupied(promoted_piece));
