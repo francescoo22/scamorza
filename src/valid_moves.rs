@@ -1,4 +1,4 @@
-use crate::chess_board::ChessBoard;
+use crate::chess_board::{ChessBoard, Square};
 use crate::chess_move::Move;
 use crate::chess_piece::{Color, Piece, PieceKind};
 
@@ -146,6 +146,72 @@ impl ChessBoard {
         moves
     }
 
+    fn is_kingside_castle_possible(&self, color: &Color) -> bool {
+        if *color == Color::White && !self.can_white_castle_kingside {
+            return false;
+        }
+
+        if *color == Color::Black && !self.can_black_castle_kingside {
+            return false;
+        }
+
+        let row = match color {
+            Color::White => 0,
+            Color::Black => 7,
+        };
+
+        if self.at(row, 1) != Square::Empty {
+            return false;
+        }
+
+        if self.at(row, 2) != Square::Empty {
+            return false;
+        }
+
+        for col in 1..=3 {
+            if self.is_square_checked(row as i32, col, *color) {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    fn is_queenside_castle_possible(&self, color: &Color) -> bool {
+        if *color == Color::White && !self.can_white_castle_queenside {
+            return false;
+        }
+
+        if *color == Color::Black && !self.can_black_castle_queenside {
+            return false;
+        }
+
+        let row = match color {
+            Color::White => 0,
+            Color::Black => 7,
+        };
+
+        if self.at(row, 4) != Square::Empty {
+            return false;
+        }
+
+        if self.at(row, 5) != Square::Empty {
+            return false;
+        }
+
+        if self.at(row, 6) != Square::Empty {
+            return false;
+        }
+
+        for col in 3..=5 {
+            if self.is_square_checked(row as i32, col, *color) {
+                return false;
+            }
+        }
+
+        true
+    }
+
     fn piece_valid_moves(&self, i: i32, j: i32, piece: &Piece) -> Vec<Move> {
         match piece.kind {
             PieceKind::Pawn => self.pawn_valid_moves(i, j, &piece.color),
@@ -183,6 +249,27 @@ impl ChessBoard {
 
     pub fn all_valid_moves(&self, color: Color) -> Vec<Move> {
         let moves = self.all_possible_moves(color);
-        self.filter_king_going_under_check(moves)
+        let mut moves = self.filter_king_going_under_check(moves);
+        if self.is_kingside_castle_possible(&color) {
+            let row = match color {
+                Color::White => 0,
+                Color::Black => 7,
+            };
+            moves.push(Move {
+                from: (row, 3),
+                to: (row, 1),
+            })
+        }
+        if self.is_queenside_castle_possible(&color) {
+            let row = match color {
+                Color::White => 0,
+                Color::Black => 7,
+            };
+            moves.push(Move {
+                from: (row, 3),
+                to: (row, 5),
+            })
+        }
+        moves
     }
 }

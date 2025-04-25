@@ -24,6 +24,11 @@ impl fmt::Display for Square {
 pub struct ChessBoard {
     squares: [[Square; 8]; 8],
     side_to_move: Color,
+
+    pub(crate) can_white_castle_kingside: bool,
+    pub(crate) can_white_castle_queenside: bool,
+    pub(crate) can_black_castle_kingside: bool,
+    pub(crate) can_black_castle_queenside: bool,
 }
 
 fn within_bounds(i: i32, j: i32) -> bool {
@@ -140,6 +145,10 @@ impl Default for ChessBoard {
         Self {
             squares: board,
             side_to_move: Color::White,
+            can_white_castle_queenside: true,
+            can_white_castle_kingside: true,
+            can_black_castle_queenside: true,
+            can_black_castle_kingside: true,
         }
     }
 }
@@ -198,9 +207,18 @@ impl FromStr for ChessBoard {
             ),
         };
 
+        let can_white_castle_queenside = parts[2].contains("Q");
+        let can_white_castle_kingside = parts[2].contains("K");
+        let can_black_castle_queenside = parts[2].contains("q");
+        let can_black_castle_kingside = parts[2].contains("k");
+
         Ok(Self {
             squares: board,
             side_to_move,
+            can_white_castle_kingside,
+            can_white_castle_queenside,
+            can_black_castle_kingside,
+            can_black_castle_queenside,
         })
     }
 }
