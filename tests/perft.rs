@@ -142,5 +142,15 @@ mod perft {
                 .unwrap();
             assert_eq!(perft(3, &chess_board, chess_board.side_to_move()), 9467);
         }
+
+        #[test]
+        #[ignore = "Slow test"]
+        fn test_position_4_depth_4() {
+            let chess_board = ChessBoard::from_str(
+                "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
+            )
+                .unwrap();
+            assert_eq!(perft(4, &chess_board, chess_board.side_to_move()), 422333);
+        }
     }
 }

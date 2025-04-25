@@ -2,6 +2,7 @@ use crate::chess_board::{ChessBoard, Square};
 use crate::chess_move::Move;
 use crate::chess_piece::{Color, Piece, PieceKind};
 
+// TODO: use builder for valid moves creation
 impl ChessBoard {
     fn slider_valid_moves(
         &self,
@@ -17,16 +18,14 @@ impl ChessBoard {
                 dist += 1;
             }
             for cur_dist in 1..dist {
-                moves.push(Move {
-                    from: (i as usize, j as usize),
-                    to: ((i + cur_dist * dy) as usize, (j + cur_dist * dx) as usize),
-                });
+                let from = (i as usize, j as usize);
+                let to = ((i + cur_dist * dy) as usize, (j + cur_dist * dx) as usize);
+                moves.push(Move::base_move(from, to));
             }
             if self.within_bounds_and_occupied_by_opponent(i + dist * dy, j + dist * dx, color) {
-                moves.push(Move {
-                    from: (i as usize, j as usize),
-                    to: ((i + dist * dy) as usize, (j + dist * dx) as usize),
-                });
+                let from = (i as usize, j as usize);
+                let to = ((i + dist * dy) as usize, (j + dist * dx) as usize);
+                moves.push(Move::base_move(from, to));
             }
         }
         moves
@@ -45,13 +44,11 @@ impl ChessBoard {
             if self.within_bounds_and_empty(i + dy, j + dx)
                 || self.within_bounds_and_occupied_by_opponent(i + dy, j + dx, color)
             {
-                moves.push(Move {
-                    from: (i as usize, j as usize),
-                    to: ((i + dy) as usize, (j + dx) as usize),
-                });
+                let from = (i as usize, j as usize);
+                let to = ((i + dy) as usize, (j + dx) as usize);
+                moves.push(Move::base_move(from, to));
             }
         }
-
         moves
     }
 
@@ -108,6 +105,40 @@ impl ChessBoard {
         self.slider_valid_moves(i, j, color, &dirs)
     }
 
+    fn maybe_promotion_moves(from: (usize, usize), to: (usize, usize), color: &Color) -> Vec<Move> {
+        let mut moves = Vec::new();
+        let dir = match color {
+            Color::White => 1,
+            Color::Black => -1,
+        };
+        let initial_row = match color {
+            Color::White => 1,
+            Color::Black => 6,
+        };
+        if to.0 != (initial_row + dir * 6) as usize {
+            moves.push(Move::base_move(from, to));
+        } else {
+            let promotable_kinds = [
+                PieceKind::Queen,
+                PieceKind::Rook,
+                PieceKind::Bishop,
+                PieceKind::Knight,
+            ]
+                .map(|it| Some(it));
+
+            promotable_kinds
+                .into_iter()
+                .for_each(|promoted_piece| {
+                    moves.push(Move {
+                        from,
+                        to,
+                        promoted_piece_kind: promoted_piece,
+                    })
+                })
+        }
+        moves
+    }
+
     fn pawn_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
         // todo: en-passant
         let mut moves = Vec::new();
@@ -120,28 +151,25 @@ impl ChessBoard {
             Color::Black => 6,
         };
         if self.within_bounds_and_empty(i + dir, j) {
-            moves.push(Move {
-                from: (i as usize, j as usize),
-                to: ((i + dir) as usize, j as usize),
-            });
+            let from = (i as usize, j as usize);
+            let to = ((i + dir) as usize, j as usize);
+            moves.extend(Self::maybe_promotion_moves(from, to, color));
+
             if self.within_bounds_and_empty(i + 2 * dir, j) && i == initial_row {
-                moves.push(Move {
-                    from: (i as usize, j as usize),
-                    to: ((i + 2 * dir) as usize, j as usize),
-                });
+                let from = (i as usize, j as usize);
+                let to = ((i + 2 * dir) as usize, j as usize);
+                moves.push(Move::base_move(from, to));
             }
         }
         if self.within_bounds_and_occupied_by_opponent(i + dir, j + 1, color) {
-            moves.push(Move {
-                from: (i as usize, j as usize),
-                to: ((i + dir) as usize, (j + 1) as usize),
-            });
+            let from = (i as usize, j as usize);
+            let to = ((i + dir) as usize, (j + 1) as usize);
+            moves.extend(Self::maybe_promotion_moves(from, to, color));
         }
         if self.within_bounds_and_occupied_by_opponent(i + dir, j - 1, color) {
-            moves.push(Move {
-                from: (i as usize, j as usize),
-                to: ((i + dir) as usize, (j - 1) as usize),
-            });
+            let from = (i as usize, j as usize);
+            let to = ((i + dir) as usize, (j - 1) as usize);
+            moves.extend(Self::maybe_promotion_moves(from, to, color));
         }
         moves
     }
@@ -255,20 +283,14 @@ impl ChessBoard {
                 Color::White => 0,
                 Color::Black => 7,
             };
-            moves.push(Move {
-                from: (row, 3),
-                to: (row, 1),
-            })
+            moves.push(Move::base_move((row, 3), (row, 1)))
         }
         if self.is_queenside_castle_possible(&color) {
             let row = match color {
                 Color::White => 0,
                 Color::Black => 7,
             };
-            moves.push(Move {
-                from: (row, 3),
-                to: (row, 5),
-            })
+            moves.push(Move::base_move((row, 3), (row, 5)))
         }
         moves
     }

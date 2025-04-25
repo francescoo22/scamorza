@@ -2,7 +2,7 @@ use std::fmt;
 use std::fmt::Formatter;
 use std::ops::Not;
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum PieceKind {
     Pawn,
     Rook,
@@ -29,7 +29,7 @@ impl Not for Color {
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Piece {
     pub(crate) kind: PieceKind,
     pub(crate) color: Color,

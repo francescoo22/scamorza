@@ -1,17 +1,24 @@
 use crate::chess_board::{ChessBoard, Square};
 use crate::chess_piece::{Piece, PieceKind};
 use regex::Regex;
-use std::ops::Not;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Move {
     pub from: (usize, usize),
     pub to: (usize, usize),
+    pub promoted_piece_kind: Option<PieceKind>,
 }
 
 impl Move {
+    pub fn base_move(from: (usize, usize), to: (usize, usize)) -> Self {
+        Self {
+            from,
+            to,
+            promoted_piece_kind: None,
+        }
+    }
     pub fn from_uci_string(s: &str) -> Self {
-        let re = Regex::new(r"^[a-h][1-8][a-h][1-8]$").unwrap();
+        let re = Regex::new(r"^[a-h][1-8][a-h][1-8][qrbn]?$").unwrap();
         if !re.is_match(s) {
             panic!("Invalid UCI string");
         }
@@ -21,9 +28,22 @@ impl Move {
         let from_row = (bytes[1] - b'1') as usize;
         let to_col = (b'h' - bytes[2]) as usize;
         let to_row = (bytes[3] - b'1') as usize;
+        let promoted_piece = if bytes.len() == 4 {
+            None
+        } else {
+            let piece_kind = match bytes[4] {
+                b'q' => PieceKind::Queen,
+                b'r' => PieceKind::Rook,
+                b'b' => PieceKind::Bishop,
+                b'n' => PieceKind::Knight,
+                _ => panic!("Invalid UCI string, unknown promoted piece kind"),
+            };
+            Some(piece_kind)
+        };
         Move {
             from: (from_row, from_col),
             to: (to_row, to_col),
+            promoted_piece_kind: promoted_piece,
         }
     }
 
@@ -32,17 +52,18 @@ impl Move {
         let from_col = char::from(b'h' - self.from.1 as u8);
         let to_row = char::from(self.to.0 as u8 + b'1');
         let to_col = char::from(b'h' - self.to.1 as u8);
-        format!("{}{}{}{}", from_col, from_row, to_col, to_row)
-    }
-}
-
-impl Not for Move {
-    type Output = Move;
-
-    fn not(self) -> Self {
-        Move {
-            from: self.to,
-            to: self.from,
+        match self.promoted_piece_kind {
+            None => format!("{}{}{}{}", from_col, from_row, to_col, to_row),
+            Some(piece_kind) => {
+                let piece_kind_char = match piece_kind {
+                    PieceKind::Rook => 'r',
+                    PieceKind::Knight => 'n',
+                    PieceKind::Bishop => 'b',
+                    PieceKind::Queen => 'q',
+                    _ => panic!("Invalid move, promoted piece cannot be of kind {:?}", piece_kind),
+                };
+                format!("{}{}{}{}{}", from_col, from_row, to_col, to_row, piece_kind_char)
+            }
         }
     }
 }
@@ -94,12 +115,12 @@ impl ChessBoard {
 
         self.castle_invalidation(mov);
 
-        let promoted_piece = if mov.to.0 == 7 && moving_piece == Piece::white_pawn() {
-            Piece::white_queen()
-        } else if mov.to.0 == 0 && moving_piece == Piece::black_pawn() {
-            Piece::black_queen()
-        } else {
-            moving_piece
+        let promoted_piece = match mov.promoted_piece_kind {
+            None => moving_piece,
+            Some(promoted_piece_kind) => Piece {
+                color: moving_piece.color,
+                kind: promoted_piece_kind,
+            }
         };
 
         self.move_rook_if_castle(mov, &moving_piece);
