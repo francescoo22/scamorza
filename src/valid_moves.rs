@@ -67,7 +67,6 @@ impl ChessBoard {
     }
 
     fn king_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
-        // todo: castle
         let dirs = vec![
             (1, 0),
             (0, 1),
@@ -140,7 +139,6 @@ impl ChessBoard {
     }
 
     fn pawn_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
-        // todo: en-passant
         let mut moves = Vec::new();
         let dir = match color {
             Color::White => 1,
