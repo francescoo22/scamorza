@@ -56,7 +56,7 @@ impl ChessBoard {
     {
         for i in 0..8 {
             for j in 0..8 {
-                match self.squares[i as usize][j as usize] {
+                match self.at(i as usize, j as usize) {
                     Square::Empty => {}
                     Square::Occupied(piece) => {
                         block(i, j, &piece);
@@ -67,7 +67,7 @@ impl ChessBoard {
     }
 
     pub(crate) fn within_bounds_and_empty(&self, i: i32, j: i32) -> bool {
-        within_bounds(i, j) && self.squares[i as usize][j as usize] == Square::Empty
+        within_bounds(i, j) && self.at(i as usize, j as usize) == Square::Empty
     }
 
     pub(crate) fn within_bounds_and_occupied_by_opponent(
@@ -80,7 +80,7 @@ impl ChessBoard {
             return false;
         }
 
-        match self.squares[i as usize][j as usize] {
+        match self.at(i as usize, j as usize) {
             Square::Empty => false,
             Square::Occupied(piece) => piece.color != *color,
         }
@@ -95,7 +95,7 @@ impl ChessBoard {
             return true;
         }
 
-        match self.squares[i as usize][j as usize] {
+        match self.at(i as usize, j as usize) {
             Square::Empty => false,
             Square::Occupied(piece) => piece.color != *color,
         }
@@ -121,14 +121,29 @@ impl ChessBoard {
     }
 
     pub fn piece_at_source_or_panic(self, mov: &Move) -> Piece {
-        match self.squares[mov.from.0][mov.from.1] {
+        match self.at(mov.from.0, mov.from.1) {
             Square::Occupied(piece) => piece,
             Square::Empty => panic!("Invalid move: Cannot move from empty square"),
         }
     }
 
-    pub fn new_turn(&self) -> Color {
-        !self.side_to_move
+    pub fn contains_piece_at(self, i: i32, j: i32, piece_to_find: Piece) -> bool {
+        match self.maybe_piece_at(i, j) {
+            None => false,
+            Some(piece) => piece == piece_to_find,
+        }
+    }
+
+    pub fn contains_piece_in_any_direction(
+        self,
+        i: i32,
+        j: i32,
+        piece_to_find: Piece,
+        directions: Vec<(i32, i32)>,
+    ) -> bool {
+        directions
+            .iter()
+            .any(|(di, dj)| self.contains_piece_at(i + di, j + dj, piece_to_find))
     }
 
     pub fn side_to_move(&self) -> Color {

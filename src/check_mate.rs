@@ -1,4 +1,4 @@
-use crate::chess_board::{ChessBoard, Square};
+use crate::chess_board::*;
 use crate::chess_piece::*;
 
 impl ChessBoard {
@@ -15,25 +15,6 @@ impl ChessBoard {
             }
         }
         panic!("King not found on the chess board");
-    }
-
-    fn contains_piece_at(self, i: i32, j: i32, piece_to_find: Piece) -> bool {
-        match self.maybe_piece_at(i, j) {
-            None => false,
-            Some(piece) => piece == piece_to_find,
-        }
-    }
-
-    fn contains_piece_in_any_direction(
-        self,
-        i: i32,
-        j: i32,
-        piece_to_find: Piece,
-        directions: Vec<(i32, i32)>,
-    ) -> bool {
-        directions
-            .iter()
-            .any(|(di, dj)| self.contains_piece_at(i + di, j + dj, piece_to_find))
     }
 
     fn is_square_checked_by_knight(self, i: i32, j: i32, color: Color) -> bool {
