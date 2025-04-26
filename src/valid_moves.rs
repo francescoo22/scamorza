@@ -1,6 +1,6 @@
 use crate::chess_board::{ChessBoard, Square};
 use crate::chess_move::Move;
-use crate::chess_piece::{Color, Piece, PieceKind};
+use crate::chess_piece::{bishop_directions, king_directions, knight_directions, rook_directions, Color, Piece, PieceKind};
 
 // TODO: use builder for valid moves creation
 impl ChessBoard {
@@ -53,55 +53,23 @@ impl ChessBoard {
     }
 
     fn knight_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
-        let dirs = vec![
-            (2, 1),
-            (1, 2),
-            (-1, 2),
-            (-2, 1),
-            (-2, -1),
-            (-1, -2),
-            (1, -2),
-            (2, -1),
-        ];
-        self.leaper_valid_moves(i, j, color, &dirs)
+        self.leaper_valid_moves(i, j, color, &knight_directions().to_vec())
     }
 
     fn king_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
-        let dirs = vec![
-            (1, 0),
-            (0, 1),
-            (-1, 0),
-            (0, -1),
-            (1, 1),
-            (1, -1),
-            (-1, 1),
-            (-1, -1),
-        ];
-        self.leaper_valid_moves(i, j, color, &dirs)
+        self.leaper_valid_moves(i, j, color, &king_directions().to_vec())
     }
 
     fn rook_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
-        let dirs = vec![(1, 0), (0, 1), (-1, 0), (0, -1)];
-        self.slider_valid_moves(i, j, color, &dirs)
+        self.slider_valid_moves(i, j, color, &rook_directions().to_vec())
     }
 
     fn bishop_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
-        let dirs = vec![(1, 1), (1, -1), (-1, 1), (-1, -1)];
-        self.slider_valid_moves(i, j, color, &dirs)
+        self.slider_valid_moves(i, j, color, &bishop_directions().to_vec())
     }
 
     fn queen_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
-        let dirs = vec![
-            (1, 0),
-            (0, 1),
-            (-1, 0),
-            (0, -1),
-            (1, 1),
-            (1, -1),
-            (-1, 1),
-            (-1, -1),
-        ];
-        self.slider_valid_moves(i, j, color, &dirs)
+        self.slider_valid_moves(i, j, color, &king_directions().to_vec())
     }
 
     fn maybe_promotion_moves(from: (usize, usize), to: (usize, usize), color: &Color) -> Vec<Move> {
@@ -125,15 +93,13 @@ impl ChessBoard {
             ]
                 .map(|it| Some(it));
 
-            promotable_kinds
-                .into_iter()
-                .for_each(|promoted_piece| {
-                    moves.push(Move {
-                        from,
-                        to,
-                        promoted_piece_kind: promoted_piece,
-                    })
+            promotable_kinds.into_iter().for_each(|promoted_piece| {
+                moves.push(Move {
+                    from,
+                    to,
+                    promoted_piece_kind: promoted_piece,
                 })
+            })
         }
         moves
     }
@@ -264,7 +230,7 @@ impl ChessBoard {
         moves
             .iter()
             .filter(|mov| {
-                let piece = self.piece_at_source(mov);
+                let piece = self.piece_at_source_or_panic(mov);
                 let mut board_after_move = self.clone();
                 board_after_move.move_piece_uci(&mov.to_uci_string());
                 !board_after_move.is_king_checked(piece.color)

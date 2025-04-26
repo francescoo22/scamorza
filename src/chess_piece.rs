@@ -36,6 +36,7 @@ pub struct Piece {
 }
 
 impl Piece {
+    // todo: check whether there is a better way to have this kind of functions
     pub(crate) fn white_pawn() -> Self {
         Piece {
             kind: PieceKind::Pawn,
@@ -118,6 +119,40 @@ impl Piece {
             color: Color::Black,
         }
     }
+}
+
+pub(crate) fn knight_directions() -> [(i32, i32); 8] {
+    [
+        (1, 2),
+        (2, 1),
+        (-1, 2),
+        (2, -1),
+        (1, -2),
+        (-2, 1),
+        (-1, -2),
+        (-2, -1),
+    ]
+}
+
+pub(crate) fn rook_directions() -> [(i32, i32); 4] {
+    [(0, 1), (1, 0), (-1, 0), (0, -1)]
+}
+
+pub(crate) fn bishop_directions() -> [(i32, i32); 4] {
+    [(1, 1), (1, -1), (-1, 1), (-1, -1)]
+}
+
+pub fn king_directions() -> [(i32, i32); 8] {
+    [
+        (1, 0),
+        (0, 1),
+        (-1, 0),
+        (0, -1),
+        (1, 1),
+        (1, -1),
+        (-1, 1),
+        (-1, -1),
+    ]
 }
 
 impl fmt::Display for Piece {

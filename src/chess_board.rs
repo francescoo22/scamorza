@@ -105,11 +105,22 @@ impl ChessBoard {
         self.squares[i][j]
     }
 
+    pub fn maybe_piece_at(&self, i: i32, j: i32) -> Option<Piece> {
+        if within_bounds(i, j) {
+            match self.at(i as usize, j as usize) {
+                Square::Empty => None,
+                Square::Occupied(piece) => Some(piece),
+            }
+        } else {
+            None
+        }
+    }
+
     pub fn set_at(&mut self, i: usize, j: usize, square: Square) {
         self.squares[i][j] = square;
     }
 
-    pub fn piece_at_source(self, mov: &Move) -> Piece {
+    pub fn piece_at_source_or_panic(self, mov: &Move) -> Piece {
         match self.squares[mov.from.0][mov.from.1] {
             Square::Occupied(piece) => piece,
             Square::Empty => panic!("Invalid move: Cannot move from empty square"),
@@ -236,7 +247,7 @@ impl FromStr for ChessBoard {
         } else {
             let col = (b'h' - parts[3].as_bytes()[0]) as usize;
             let row = (parts[3].as_bytes()[1] - b'1') as usize;
-            if col < 0 || col > 7 || (row != 2 && row != 5) {
+            if col > 7 || (row != 2 && row != 5) {
                 panic!(
                     "Invalid FEN, en passant target square {} is not valid",
                     parts[3]
