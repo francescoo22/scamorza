@@ -20,10 +20,21 @@ impl fmt::Display for Square {
     }
 }
 
+pub type BitBoard = u64;
+
 #[derive(Clone, Copy)]
 pub struct ChessBoard {
-    squares: [[Square; 8]; 8],
     side_to_move: Color,
+
+    pub white_pieces: BitBoard,
+    pub black_pieces: BitBoard,
+
+    pub pawns: BitBoard,
+    pub knights: BitBoard,
+    pub bishops: BitBoard,
+    pub rooks: BitBoard,
+    pub queens: BitBoard,
+    pub kings: BitBoard,
 
     pub(crate) can_white_castle_kingside: bool,
     pub(crate) can_white_castle_queenside: bool,
@@ -37,11 +48,18 @@ fn within_bounds(i: i32, j: i32) -> bool {
     i < 8 && j < 8 && i >= 0 && j >= 0
 }
 
+pub fn square_mask(i: usize, j: usize) -> BitBoard {
+    // TODO: Replace '7 - j' with 'j'
+    // '7 - j' is done to be coherent with previous representation.
+    // It would be better to change representation and use 'j' instead of '7 - j'
+    1 << (i * 8 + (7 - j))
+}
+
 impl fmt::Display for ChessBoard {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        for row in &self.squares {
-            for cell in row {
-                write!(f, " {}", cell)?;
+        for i in 0..8 {
+            for j in 0..8 {
+                write!(f, " {}", self.at(i, j))?;
             }
             writeln!(f)?;
         }
@@ -102,7 +120,33 @@ impl ChessBoard {
     }
 
     pub fn at(&self, i: usize, j: usize) -> Square {
-        self.squares[i][j]
+        let square_mask = square_mask(i, j);
+
+        match square_mask & (self.white_pieces | self.black_pieces) {
+            0 => Square::Empty,
+            _ => {
+                let color = match square_mask & self.white_pieces {
+                    0 => Color::Black,
+                    _ => Color::White,
+                };
+                let kind = if square_mask & self.pawns != 0 {
+                    PieceKind::Pawn
+                } else if square_mask & self.knights != 0 {
+                    PieceKind::Knight
+                } else if square_mask & self.bishops != 0 {
+                    PieceKind::Bishop
+                } else if square_mask & self.rooks != 0 {
+                    PieceKind::Rook
+                } else if square_mask & self.queens != 0 {
+                    PieceKind::Queen
+                } else if square_mask & self.kings != 0 {
+                    PieceKind::King
+                } else {
+                    unreachable!("Mismatch between color bitboard and piece bitboard")
+                };
+                Square::Occupied(Piece { kind, color })
+            }
+        }
     }
 
     pub fn maybe_piece_at(&self, i: i32, j: i32) -> Option<Piece> {
@@ -117,7 +161,32 @@ impl ChessBoard {
     }
 
     pub fn set_at(&mut self, i: usize, j: usize, square: Square) {
-        self.squares[i][j] = square;
+        let square_mask = square_mask(i, j);
+        self.white_pieces &= !square_mask;
+        self.black_pieces &= !square_mask;
+        self.pawns &= !square_mask;
+        self.knights &= !square_mask;
+        self.bishops &= !square_mask;
+        self.rooks &= !square_mask;
+        self.queens &= !square_mask;
+        self.kings &= !square_mask;
+        match square {
+            Square::Occupied(piece) => {
+                match piece.color {
+                    Color::White => self.white_pieces |= square_mask,
+                    Color::Black => self.black_pieces |= square_mask,
+                }
+                match piece.kind {
+                    PieceKind::Pawn => self.pawns |= square_mask,
+                    PieceKind::Rook => self.rooks |= square_mask,
+                    PieceKind::Knight => self.knights |= square_mask,
+                    PieceKind::Bishop => self.bishops |= square_mask,
+                    PieceKind::Queen => self.queens |= square_mask,
+                    PieceKind::King => self.kings |= square_mask,
+                }
+            }
+            Square::Empty => {}
+        }
     }
 
     pub fn piece_at_source_or_panic(self, mov: &Move) -> Piece {
@@ -153,41 +222,15 @@ impl ChessBoard {
 
 impl Default for ChessBoard {
     fn default() -> Self {
-        let mut board = [[Square::Empty; 8]; 8];
-        for i in 0..8 {
-            board[1][i] = Square::Occupied(Piece {
-                kind: PieceKind::Pawn,
-                color: Color::White,
-            });
-            board[6][i] = Square::Occupied(Piece {
-                kind: PieceKind::Pawn,
-                color: Color::Black,
-            });
-        }
-
-        for i in 0..8 {
-            let kind = match i {
-                0 => PieceKind::Rook,
-                1 => PieceKind::Knight,
-                2 => PieceKind::Bishop,
-                3 => PieceKind::King,
-                4 => PieceKind::Queen,
-                5 => PieceKind::Bishop,
-                6 => PieceKind::Knight,
-                7 => PieceKind::Rook,
-                _ => unreachable!(),
-            };
-            board[0][i] = Square::Occupied(Piece {
-                kind,
-                color: Color::White,
-            });
-            board[7][i] = Square::Occupied(Piece {
-                kind,
-                color: Color::Black,
-            });
-        }
         Self {
-            squares: board,
+            white_pieces: 0x000000000000FFFF,
+            black_pieces: 0xFFFF000000000000,
+            pawns: 0x00FF00000000FF00,
+            knights: 0x4200000000000042,
+            bishops: 0x2400000000000024,
+            rooks: 0x8100000000000081,
+            queens: 0x0800000000000008,
+            kings: 0x1000000000000010,
             side_to_move: Color::White,
             can_white_castle_queenside: true,
             can_white_castle_kingside: true,
@@ -202,7 +245,14 @@ impl FromStr for ChessBoard {
     type Err = String;
 
     fn from_str(fen: &str) -> Result<Self, Self::Err> {
-        let mut board = [[Square::Empty; 8]; 8];
+        let mut white_pieces = 0;
+        let mut black_pieces = 0;
+        let mut pawns = 0;
+        let mut knights = 0;
+        let mut bishops = 0;
+        let mut rooks = 0;
+        let mut queens = 0;
+        let mut kings = 0;
 
         let parts = fen.split(" ").collect::<Vec<&str>>();
         assert_eq!(parts.len(), 6, "Invalid FEN, expected 6 parts");
@@ -236,7 +286,21 @@ impl FromStr for ChessBoard {
                                 c
                             ),
                         };
-                        board[7 - i][7 - j] = Square::Occupied(piece);
+
+                        match piece.color {
+                            Color::White => white_pieces |= square_mask(7 - i, 7 - j),
+                            Color::Black => black_pieces |= square_mask(7 - i, 7 - j),
+                        }
+
+                        match piece.kind {
+                            PieceKind::Pawn => pawns |= square_mask(7 - i, 7 - j),
+                            PieceKind::Knight => knights |= square_mask(7 - i, 7 - j),
+                            PieceKind::Bishop => bishops |= square_mask(7 - i, 7 - j),
+                            PieceKind::Rook => rooks |= square_mask(7 - i, 7 - j),
+                            PieceKind::Queen => queens |= square_mask(7 - i, 7 - j),
+                            PieceKind::King => kings |= square_mask(7 - i, 7 - j),
+                        }
+
                         j += 1;
                     }
                 }
@@ -272,7 +336,14 @@ impl FromStr for ChessBoard {
         };
 
         Ok(Self {
-            squares: board,
+            white_pieces,
+            black_pieces,
+            pawns,
+            knights,
+            bishops,
+            rooks,
+            queens,
+            kings,
             side_to_move,
             can_white_castle_kingside,
             can_white_castle_queenside,
