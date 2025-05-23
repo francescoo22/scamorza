@@ -91,6 +91,14 @@ impl ChessBoard {
             }
             _ => {}
         }
+
+        match mov.to {
+            (0, 0) => self.can_white_castle_kingside = false,
+            (0, 7) => self.can_white_castle_queenside = false,
+            (7, 0) => self.can_black_castle_kingside = false,
+            (7, 7) => self.can_black_castle_queenside = false,
+            _ => {}
+        }
     }
 
     fn move_rook_if_castle(&mut self, mov: &Move, moving_piece: &Piece) {

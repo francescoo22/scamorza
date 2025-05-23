@@ -1,6 +1,8 @@
 use crate::chess_board::{ChessBoard, Square};
 use crate::chess_move::Move;
-use crate::chess_piece::{bishop_directions, king_directions, knight_directions, rook_directions, Color, Piece, PieceKind};
+use crate::chess_piece::{
+    bishop_directions, king_directions, knight_directions, rook_directions, Color, Piece, PieceKind,
+};
 
 // TODO: use builder for valid moves creation
 impl ChessBoard {
@@ -240,8 +242,7 @@ impl ChessBoard {
     }
 
     pub fn all_valid_moves(&self, color: Color) -> Vec<Move> {
-        let moves = self.all_possible_moves(color);
-        let mut moves = self.filter_king_going_under_check(moves);
+        let mut moves = self.filter_king_going_under_check(self.all_possible_moves(color));
         if self.is_kingside_castle_possible(&color) {
             let row = match color {
                 Color::White => 0,

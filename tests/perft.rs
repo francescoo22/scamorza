@@ -79,9 +79,6 @@ mod perft {
             assert_eq!(perft(3, &chess_board, chess_board.side_to_move()), 97862);
         }
 
-        // TODO: run once (~6 min) and failed, investigate
-        // Expected :4085603
-        // Actual   :4085718
         #[test]
         #[ignore = "Slow test"]
         fn test_position_2_depth_4() {
@@ -224,9 +221,6 @@ mod perft {
         }
 
 
-        // TODO: investigate:
-        // actual: 62416
-        // expected: 62379
         #[test]
         fn test_position_5_depth_3() {
             let chess_board = ChessBoard::from_str(
