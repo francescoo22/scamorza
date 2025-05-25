@@ -4,6 +4,7 @@ use regex::Regex;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Move {
+    // TODO: use u8 instead of (usize, usize)
     pub from: (usize, usize),
     pub to: (usize, usize),
     pub promoted_piece_kind: Option<PieceKind>,
@@ -77,26 +78,26 @@ impl Move {
 impl ChessBoard {
     fn castle_invalidation(&mut self, mov: &Move) {
         match mov.from {
-            (0, 0) => self.can_white_castle_kingside = false,
-            (0, 7) => self.can_white_castle_queenside = false,
-            (7, 0) => self.can_black_castle_kingside = false,
-            (7, 7) => self.can_black_castle_queenside = false,
+            (0, 0) => self.set_white_castle_kingside(false),
+            (0, 7) => self.set_white_castle_queenside(false),
+            (7, 0) => self.set_black_castle_kingside(false),
+            (7, 7) => self.set_black_castle_queenside(false),
             (0, 3) => {
-                self.can_white_castle_kingside = false;
-                self.can_white_castle_queenside = false;
+                self.set_white_castle_kingside(false);
+                self.set_white_castle_queenside(false);
             }
             (7, 3) => {
-                self.can_black_castle_kingside = false;
-                self.can_black_castle_queenside = false;
+                self.set_black_castle_kingside(false);
+                self.set_black_castle_queenside(false);
             }
             _ => {}
         }
 
         match mov.to {
-            (0, 0) => self.can_white_castle_kingside = false,
-            (0, 7) => self.can_white_castle_queenside = false,
-            (7, 0) => self.can_black_castle_kingside = false,
-            (7, 7) => self.can_black_castle_queenside = false,
+            (0, 0) => self.set_white_castle_kingside(false),
+            (0, 7) => self.set_white_castle_queenside(false),
+            (7, 0) => self.set_black_castle_kingside(false),
+            (7, 7) => self.set_black_castle_queenside(false),
             _ => {}
         }
     }

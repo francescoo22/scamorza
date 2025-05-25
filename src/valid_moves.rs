@@ -141,11 +141,11 @@ impl ChessBoard {
     }
 
     fn is_kingside_castle_possible(&self, color: &Color) -> bool {
-        if *color == Color::White && !self.can_white_castle_kingside {
+        if *color == Color::White && !self.can_white_castle_kingside() {
             return false;
         }
 
-        if *color == Color::Black && !self.can_black_castle_kingside {
+        if *color == Color::Black && !self.can_black_castle_kingside() {
             return false;
         }
 
@@ -172,11 +172,11 @@ impl ChessBoard {
     }
 
     fn is_queenside_castle_possible(&self, color: &Color) -> bool {
-        if *color == Color::White && !self.can_white_castle_queenside {
+        if *color == Color::White && !self.can_white_castle_queenside() {
             return false;
         }
 
-        if *color == Color::Black && !self.can_black_castle_queenside {
+        if *color == Color::Black && !self.can_black_castle_queenside() {
             return false;
         }
 

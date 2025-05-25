@@ -36,10 +36,13 @@ pub struct ChessBoard {
     pub queens: BitBoard,
     pub kings: BitBoard,
 
-    pub(crate) can_white_castle_kingside: bool,
-    pub(crate) can_white_castle_queenside: bool,
-    pub(crate) can_black_castle_kingside: bool,
-    pub(crate) can_black_castle_queenside: bool,
+    /// bit 0: can_white_castle_kingside.
+    /// bit 1: can_white_castle_queenside.
+    /// bit 2: can_black_castle_kingside.
+    /// bit 3: can_black_castle_queenside.
+    status: BitBoard,
+
+    // TODO: store en_passant_target_square and side_to move in `status`
 
     pub(crate) en_passant_target_square: Option<(usize, usize)>,
 }
@@ -218,7 +221,59 @@ impl ChessBoard {
     pub fn side_to_move(&self) -> Color {
         self.side_to_move
     }
+
+    pub fn can_white_castle_kingside(&self) -> bool {
+        (self.status & WHITE_KINGSIDE_CASTLE_MASK) != 0
+    }
+
+    pub fn set_white_castle_kingside(&mut self, can_castle: bool) {
+        if can_castle {
+            self.status |= WHITE_KINGSIDE_CASTLE_MASK;
+        } else {
+            self.status &= !WHITE_KINGSIDE_CASTLE_MASK;
+        }
+    }
+    pub fn can_white_castle_queenside(&self) -> bool {
+        (self.status & WHITE_QUEENSIDE_CASTLE_MASK) != 0
+    }
+
+    pub fn set_white_castle_queenside(&mut self, can_castle: bool) {
+        if can_castle {
+            self.status |= WHITE_QUEENSIDE_CASTLE_MASK;
+        } else {
+            self.status &= !WHITE_QUEENSIDE_CASTLE_MASK;
+        }
+    }
+
+    pub fn can_black_castle_kingside(&self) -> bool {
+        (self.status & BLACK_KINGSIDE_CASTLE_MASK) != 0
+    }
+
+    pub fn set_black_castle_kingside(&mut self, can_castle: bool) {
+        if can_castle {
+            self.status |= BLACK_KINGSIDE_CASTLE_MASK;
+        } else {
+            self.status &= !BLACK_KINGSIDE_CASTLE_MASK;
+        }
+    }
+
+    pub fn can_black_castle_queenside(&self) -> bool {
+        (self.status & BLACK_QUEENSIDE_CASTLE_MASK) != 0
+    }
+
+    pub fn set_black_castle_queenside(&mut self, can_castle: bool) {
+        if can_castle {
+            self.status |= BLACK_QUEENSIDE_CASTLE_MASK;
+        } else {
+            self.status &= !BLACK_QUEENSIDE_CASTLE_MASK;
+        }
+    }
 }
+
+const WHITE_KINGSIDE_CASTLE_MASK: BitBoard = 1 << 0;
+const WHITE_QUEENSIDE_CASTLE_MASK: BitBoard = 1 << 1;
+const BLACK_KINGSIDE_CASTLE_MASK: BitBoard = 1 << 2;
+const BLACK_QUEENSIDE_CASTLE_MASK: BitBoard = 1 << 3;
 
 impl Default for ChessBoard {
     fn default() -> Self {
@@ -232,11 +287,8 @@ impl Default for ChessBoard {
             queens: 0x0800000000000008,
             kings: 0x1000000000000010,
             side_to_move: Color::White,
-            can_white_castle_queenside: true,
-            can_white_castle_kingside: true,
-            can_black_castle_queenside: true,
-            can_black_castle_kingside: true,
             en_passant_target_square: None,
+            status: 15
         }
     }
 }
@@ -253,6 +305,7 @@ impl FromStr for ChessBoard {
         let mut rooks = 0;
         let mut queens = 0;
         let mut kings = 0;
+        let mut status = 0;
 
         let parts = fen.split(" ").collect::<Vec<&str>>();
         assert_eq!(parts.len(), 6, "Invalid FEN, expected 6 parts");
@@ -316,10 +369,18 @@ impl FromStr for ChessBoard {
             ),
         };
 
-        let can_white_castle_queenside = parts[2].contains("Q");
-        let can_white_castle_kingside = parts[2].contains("K");
-        let can_black_castle_queenside = parts[2].contains("q");
-        let can_black_castle_kingside = parts[2].contains("k");
+        if parts[2].contains("Q") {
+            status |= WHITE_QUEENSIDE_CASTLE_MASK;
+        }
+        if parts[2].contains("K") {
+            status |= WHITE_KINGSIDE_CASTLE_MASK;
+        }
+        if parts[2].contains("q") {
+            status |= BLACK_QUEENSIDE_CASTLE_MASK;
+        }
+        if parts[2].contains("k") {
+            status |= BLACK_KINGSIDE_CASTLE_MASK;
+        }
 
         let en_passant_target_square = if parts[3] == "-" {
             None
@@ -345,11 +406,8 @@ impl FromStr for ChessBoard {
             queens,
             kings,
             side_to_move,
-            can_white_castle_kingside,
-            can_white_castle_queenside,
-            can_black_castle_kingside,
-            can_black_castle_queenside,
             en_passant_target_square,
+            status,
         })
     }
 }
