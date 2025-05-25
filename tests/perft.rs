@@ -204,39 +204,34 @@ mod perft {
 
         #[test]
         fn test_position_5_depth_1() {
-            let chess_board = ChessBoard::from_str(
-                "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
-            )
-                .unwrap();
+            let chess_board =
+                ChessBoard::from_str("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8")
+                    .unwrap();
             assert_eq!(perft(1, &chess_board, chess_board.side_to_move()), 44);
         }
 
         #[test]
         fn test_position_5_depth_2() {
-            let chess_board = ChessBoard::from_str(
-                "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
-            )
-                .unwrap();
+            let chess_board =
+                ChessBoard::from_str("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8")
+                    .unwrap();
             assert_eq!(perft(2, &chess_board, chess_board.side_to_move()), 1486);
         }
 
-
         #[test]
         fn test_position_5_depth_3() {
-            let chess_board = ChessBoard::from_str(
-                "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
-            )
-                .unwrap();
+            let chess_board =
+                ChessBoard::from_str("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8")
+                    .unwrap();
             assert_eq!(perft(3, &chess_board, chess_board.side_to_move()), 62379);
         }
 
         #[test]
         #[ignore = "Slow test"]
         fn test_position_5_depth_4() {
-            let chess_board = ChessBoard::from_str(
-                "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
-            )
-                .unwrap();
+            let chess_board =
+                ChessBoard::from_str("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8")
+                    .unwrap();
             assert_eq!(perft(4, &chess_board, chess_board.side_to_move()), 2103487);
         }
     }
