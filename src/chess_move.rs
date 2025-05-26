@@ -50,9 +50,9 @@ impl Move {
 
     pub fn to_uci_string(&self) -> String {
         let from_row = char::from(self.from.0 as u8 + b'1');
-        let from_col = char::from(b'h' - self.from.1 as u8);
+        let from_col = char::from(self.from.1 as u8 + b'a');
         let to_row = char::from(self.to.0 as u8 + b'1');
-        let to_col = char::from(b'h' - self.to.1 as u8);
+        let to_col = char::from(self.to.1 as u8 + b'a');
         match self.promoted_piece_kind {
             None => format!("{}{}{}{}", from_col, from_row, to_col, to_row),
             Some(piece_kind) => {
