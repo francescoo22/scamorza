@@ -24,8 +24,6 @@ pub type BitBoard = u64;
 
 #[derive(Clone, Copy)]
 pub struct ChessBoard {
-    side_to_move: Color,
-
     pub white_pieces: BitBoard,
     pub black_pieces: BitBoard,
 
@@ -40,9 +38,10 @@ pub struct ChessBoard {
     /// bit 1: can_white_castle_queenside.
     /// bit 2: can_black_castle_kingside.
     /// bit 3: can_black_castle_queenside.
+    /// bit 4: current_turn. (0 -> white, 1-> black)
     status: BitBoard,
 
-    // TODO: store en_passant_target_square and side_to move in `status`
+    // TODO: store en_passant_target_square in `status`
 
     pub(crate) en_passant_target_square: Option<(usize, usize)>,
 }
@@ -218,10 +217,6 @@ impl ChessBoard {
             .any(|(di, dj)| self.contains_piece_at(i + di, j + dj, piece_to_find))
     }
 
-    pub fn side_to_move(&self) -> Color {
-        self.side_to_move
-    }
-
     pub fn can_white_castle_kingside(&self) -> bool {
         (self.status & WHITE_KINGSIDE_CASTLE_MASK) != 0
     }
@@ -268,12 +263,25 @@ impl ChessBoard {
             self.status &= !BLACK_QUEENSIDE_CASTLE_MASK;
         }
     }
+
+    pub fn current_turn(&self) -> Color {
+        if self.status & CURRENT_TURN_MASK == 0 {
+            Color::White
+        } else {
+            Color::Black
+        }
+    }
+
+    pub fn next_turn(&mut self) {
+        self.status ^= CURRENT_TURN_MASK;
+    }
 }
 
 const WHITE_KINGSIDE_CASTLE_MASK: BitBoard = 1 << 0;
 const WHITE_QUEENSIDE_CASTLE_MASK: BitBoard = 1 << 1;
 const BLACK_KINGSIDE_CASTLE_MASK: BitBoard = 1 << 2;
 const BLACK_QUEENSIDE_CASTLE_MASK: BitBoard = 1 << 3;
+const CURRENT_TURN_MASK: BitBoard = 1 << 4;
 
 impl Default for ChessBoard {
     fn default() -> Self {
@@ -286,7 +294,6 @@ impl Default for ChessBoard {
             rooks: 0x8100000000000081,
             queens: 0x0800000000000008,
             kings: 0x1000000000000010,
-            side_to_move: Color::White,
             en_passant_target_square: None,
             status: 15
         }
@@ -360,9 +367,9 @@ impl FromStr for ChessBoard {
             }
         }
 
-        let side_to_move = match parts[1] {
-            "w" => Color::White,
-            "b" => Color::Black,
+        match parts[1] {
+            "w" => {},
+            "b" => { status |= CURRENT_TURN_MASK; },
             _ => panic!(
                 "Invalid FEN, expected 'w' or 'b' for side to move, found {}",
                 parts[1]
@@ -405,7 +412,6 @@ impl FromStr for ChessBoard {
             rooks,
             queens,
             kings,
-            side_to_move,
             en_passant_target_square,
             status,
         })

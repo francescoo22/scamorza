@@ -169,6 +169,8 @@ impl ChessBoard {
 
         self.set_at(mov.from.0, mov.from.1, Square::Empty);
         self.set_at(mov.to.0, mov.to.1, Square::Occupied(promoted_piece));
+
+        self.next_turn();
     }
 
     pub fn move_piece_uci(&mut self, uci: &str) {
