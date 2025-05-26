@@ -51,10 +51,7 @@ fn within_bounds(i: i32, j: i32) -> bool {
 }
 
 pub fn square_mask(i: usize, j: usize) -> BitBoard {
-    // TODO: Replace '7 - j' with 'j'
-    // '7 - j' is done to be coherent with previous representation.
-    // It would be better to change representation and use 'j' instead of '7 - j'
-    1 << (i * 8 + (7 - j))
+    1 << (i * 8 + j)
 }
 
 impl fmt::Display for ChessBoard {

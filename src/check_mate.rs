@@ -8,8 +8,7 @@ impl ChessBoard {
             Color::Black => self.black_pieces & self.kings,
         };
         let king_position = king_bit_board.trailing_zeros();
-        // TODO: also here '7 - (king_position % 8)' should be changed after getting rid of old representation in move generation
-        ((king_position / 8) as i32, 7 - (king_position % 8) as i32)
+        ((king_position / 8) as i32, (king_position % 8) as i32)
     }
 
     fn is_square_checked_by_knight(self, i: i32, j: i32, color: Color) -> bool {
