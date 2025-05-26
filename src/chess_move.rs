@@ -123,7 +123,7 @@ impl ChessBoard {
     }
 
     fn remove_piece_after_en_passant(&mut self, mov: &Move, moving_piece: &Piece) {
-        match (moving_piece.kind, self.en_passant_target_square) {
+        match (moving_piece.kind, self.en_passant_target_square()) {
             (PieceKind::Pawn, Some(en_passant_square)) => {
                 if mov.to == en_passant_square {
                     self.set_at(mov.from.0, en_passant_square.1, Square::Empty)
@@ -138,12 +138,12 @@ impl ChessBoard {
             PieceKind::Pawn => {
                 let move_length = mov.from.0.abs_diff(mov.to.0);
                 if move_length == 1 {
-                    self.en_passant_target_square = None
+                    self.set_en_passant_target_square(None)
                 } else {
-                    self.en_passant_target_square = Some(((mov.from.0 + mov.to.0) / 2, mov.to.1))
+                    self.set_en_passant_target_square(Some(((mov.from.0 + mov.to.0) / 2, mov.to.1)))
                 }
             }
-            _ => self.en_passant_target_square = None,
+            _ => self.set_en_passant_target_square(None),
         }
     }
 

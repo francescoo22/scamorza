@@ -38,12 +38,9 @@ pub struct ChessBoard {
     /// bit 1: can_white_castle_queenside.
     /// bit 2: can_black_castle_kingside.
     /// bit 3: can_black_castle_queenside.
-    /// bit 4: current_turn. (0 -> white, 1-> black)
+    /// bit 4: current_turn. (1 -> white, 0 -> black)
+    /// bit 5-10: en_passant_target_square. (111111 -> None)
     status: BitBoard,
-
-    // TODO: store en_passant_target_square in `status`
-
-    pub(crate) en_passant_target_square: Option<(usize, usize)>,
 }
 
 fn within_bounds(i: i32, j: i32) -> bool {
@@ -108,7 +105,7 @@ impl ChessBoard {
             return false;
         }
 
-        if self.en_passant_target_square == Some((i as usize, j as usize)) {
+        if self.en_passant_target_square() == Some((i as usize, j as usize)) {
             return true;
         }
 
@@ -262,7 +259,7 @@ impl ChessBoard {
     }
 
     pub fn current_turn(&self) -> Color {
-        if self.status & CURRENT_TURN_MASK == 0 {
+        if self.status & CURRENT_TURN_MASK != 0 {
             Color::White
         } else {
             Color::Black
@@ -272,6 +269,29 @@ impl ChessBoard {
     pub fn next_turn(&mut self) {
         self.status ^= CURRENT_TURN_MASK;
     }
+
+    pub fn en_passant_target_square(&self) -> Option<(usize, usize)> {
+        if self.status & EN_PASSANT_MASK == EN_PASSANT_MASK {
+            None
+        } else {
+            let square_index = (self.status & EN_PASSANT_MASK) >> 5;
+            debug_assert!(square_index < 64);
+            Some(((square_index / 8) as usize, (square_index % 8) as usize))
+        }
+    }
+
+    pub fn set_en_passant_target_square(&mut self, square: Option<(usize, usize)>) {
+        self.status &= !EN_PASSANT_MASK;
+        match square {
+            None => {
+                self.status |= EN_PASSANT_MASK;
+            }
+            Some((i, j)) => {
+                self.status |= ((i * 8 + j) as BitBoard) << 5;
+            }
+        }
+        debug_assert_eq!(self.en_passant_target_square(), square);
+    }
 }
 
 const WHITE_KINGSIDE_CASTLE_MASK: BitBoard = 1 << 0;
@@ -279,6 +299,7 @@ const WHITE_QUEENSIDE_CASTLE_MASK: BitBoard = 1 << 1;
 const BLACK_KINGSIDE_CASTLE_MASK: BitBoard = 1 << 2;
 const BLACK_QUEENSIDE_CASTLE_MASK: BitBoard = 1 << 3;
 const CURRENT_TURN_MASK: BitBoard = 1 << 4;
+pub const EN_PASSANT_MASK: BitBoard = 63 << 5;
 
 impl Default for ChessBoard {
     fn default() -> Self {
@@ -291,8 +312,7 @@ impl Default for ChessBoard {
             rooks: 0x8100000000000081,
             queens: 0x0800000000000008,
             kings: 0x1000000000000010,
-            en_passant_target_square: None,
-            status: 15
+            status: 0x7FF,
         }
     }
 }
@@ -365,8 +385,10 @@ impl FromStr for ChessBoard {
         }
 
         match parts[1] {
-            "w" => {},
-            "b" => { status |= CURRENT_TURN_MASK; },
+            "w" => {
+                status |= CURRENT_TURN_MASK;
+            }
+            "b" => {}
             _ => panic!(
                 "Invalid FEN, expected 'w' or 'b' for side to move, found {}",
                 parts[1]
@@ -386,9 +408,8 @@ impl FromStr for ChessBoard {
             status |= BLACK_KINGSIDE_CASTLE_MASK;
         }
 
-        let en_passant_target_square = if parts[3] == "-" {
-            None
-        } else {
+        // TODO: this is not tested in perft
+        if parts[3] != "-" {
             let col = (b'h' - parts[3].as_bytes()[0]) as usize;
             let row = (parts[3].as_bytes()[1] - b'1') as usize;
             if col > 7 || (row != 2 && row != 5) {
@@ -397,7 +418,7 @@ impl FromStr for ChessBoard {
                     parts[3]
                 )
             }
-            Some((row, col))
+            status |= ((row * 8 + col) as BitBoard) << 5;
         };
 
         Ok(Self {
@@ -409,7 +430,6 @@ impl FromStr for ChessBoard {
             rooks,
             queens,
             kings,
-            en_passant_target_square,
             status,
         })
     }
