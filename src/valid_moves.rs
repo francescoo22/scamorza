@@ -234,7 +234,7 @@ impl ChessBoard {
             .filter(|mov| {
                 let piece = self.piece_at_source_or_panic(mov);
                 let mut board_after_move = self.clone();
-                board_after_move.move_piece_uci(&mov.to_uci_string());
+                board_after_move.move_piece(&mov);
                 !board_after_move.is_king_checked(piece.color)
             })
             .copied()

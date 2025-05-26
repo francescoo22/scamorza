@@ -25,9 +25,9 @@ impl Move {
         }
 
         let bytes = s.as_bytes();
-        let from_col = (b'h' - bytes[0]) as usize;
+        let from_col = (bytes[0] - b'a') as usize;
         let from_row = (bytes[1] - b'1') as usize;
-        let to_col = (b'h' - bytes[2]) as usize;
+        let to_col = (bytes[2] - b'a') as usize;
         let to_row = (bytes[3] - b'1') as usize;
         let promoted_piece = if bytes.len() == 4 {
             None
