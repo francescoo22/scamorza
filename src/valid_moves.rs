@@ -1,4 +1,6 @@
-use crate::chess_board::{ChessBoard, Square};
+use crate::chess_board::{
+    apply_delta, apply_delta_with_dist, ChessBoard, Square, SquareIndex,
+};
 use crate::chess_move::Move;
 use crate::chess_piece::{
     bishop_directions, king_directions, knight_directions, rook_directions, Color, Piece, PieceKind,
@@ -8,26 +10,29 @@ use crate::chess_piece::{
 impl ChessBoard {
     fn slider_valid_moves(
         &self,
-        i: i32,
-        j: i32,
+        index: SquareIndex,
         color: &Color,
         directions: &Vec<(i32, i32)>,
     ) -> Vec<Move> {
         let mut moves: Vec<Move> = Vec::new();
-        for (dx, dy) in directions {
+        for delta in directions {
             let mut dist = 1;
-            while self.within_bounds_and_empty(i + dist * dy, j + dist * dx) {
-                dist += 1;
-            }
-            for cur_dist in 1..dist {
-                let from = (i as usize, j as usize);
-                let to = ((i + cur_dist * dy) as usize, (j + cur_dist * dx) as usize);
-                moves.push(Move::base_move(from, to));
-            }
-            if self.within_bounds_and_occupied_by_opponent(i + dist * dy, j + dist * dx, color) {
-                let from = (i as usize, j as usize);
-                let to = ((i + dist * dy) as usize, (j + dist * dx) as usize);
-                moves.push(Move::base_move(from, to));
+
+            loop {
+                let next_position = apply_delta_with_dist(index, *delta, dist);
+                match self.within_bounds_and_empty(next_position) {
+                    Some(to_index) => {
+                        moves.push(Move::base_move(index, to_index));
+                        dist += 1
+                    }
+                    None => {
+                        match self.within_bounds_and_occupied_by_opponent(next_position, color) {
+                            None => {}
+                            Some(to_index) => moves.push(Move::base_move(index, to_index)),
+                        }
+                        break;
+                    }
+                }
             }
         }
         moves
@@ -35,107 +40,120 @@ impl ChessBoard {
 
     fn leaper_valid_moves(
         &self,
-        i: i32,
-        j: i32,
+        index: SquareIndex,
         color: &Color,
         directions: &Vec<(i32, i32)>,
     ) -> Vec<Move> {
         let mut moves = Vec::new();
 
-        for (dx, dy) in directions {
-            if self.within_bounds_and_empty(i + dy, j + dx)
-                || self.within_bounds_and_occupied_by_opponent(i + dy, j + dx, color)
+        for delta in directions {
+            let to_index = apply_delta(index, *delta);
+            if let Some(to_index) = self.within_bounds_and_empty(to_index) {
+                moves.push(Move::base_move(index, to_index));
+            } else if let Some(to_index) =
+                self.within_bounds_and_occupied_by_opponent(to_index, color)
             {
-                let from = (i as usize, j as usize);
-                let to = ((i + dy) as usize, (j + dx) as usize);
-                moves.push(Move::base_move(from, to));
+                moves.push(Move::base_move(index, to_index));
             }
         }
         moves
     }
 
-    fn knight_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
-        self.leaper_valid_moves(i, j, color, &knight_directions().to_vec())
+    fn knight_valid_moves(&self, index: SquareIndex, color: &Color) -> Vec<Move> {
+        self.leaper_valid_moves(index, color, &knight_directions().to_vec())
     }
 
-    fn king_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
-        self.leaper_valid_moves(i, j, color, &king_directions().to_vec())
+    fn king_valid_moves(&self, index: SquareIndex, color: &Color) -> Vec<Move> {
+        self.leaper_valid_moves(index, color, &king_directions().to_vec())
     }
 
-    fn rook_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
-        self.slider_valid_moves(i, j, color, &rook_directions().to_vec())
+    fn rook_valid_moves(&self, index: SquareIndex, color: &Color) -> Vec<Move> {
+        self.slider_valid_moves(index, color, &rook_directions().to_vec())
     }
 
-    fn bishop_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
-        self.slider_valid_moves(i, j, color, &bishop_directions().to_vec())
+    fn bishop_valid_moves(&self, index: SquareIndex, color: &Color) -> Vec<Move> {
+        self.slider_valid_moves(index, color, &bishop_directions().to_vec())
     }
 
-    fn queen_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
-        self.slider_valid_moves(i, j, color, &king_directions().to_vec())
+    fn queen_valid_moves(&self, index: SquareIndex, color: &Color) -> Vec<Move> {
+        self.slider_valid_moves(index, color, &king_directions().to_vec())
     }
 
-    fn maybe_promotion_moves(from: (usize, usize), to: (usize, usize), color: &Color) -> Vec<Move> {
+    fn is_promotion_row(index: SquareIndex, color: &Color) -> bool {
+        // todo: it is a bit scary that this is not covered properly
+        match color {
+            Color::White => index > 55,
+            Color::Black => index < 8,
+        }
+    }
+
+    fn maybe_promotion_moves(from: SquareIndex, to: SquareIndex, color: &Color) -> Vec<Move> {
         let mut moves = Vec::new();
-        let dir = match color {
-            Color::White => 1,
-            Color::Black => -1,
-        };
-        let initial_row = match color {
-            Color::White => 1,
-            Color::Black => 6,
-        };
-        if to.0 != (initial_row + dir * 6) as usize {
+        if !Self::is_promotion_row(to, color) {
             moves.push(Move::base_move(from, to));
         } else {
+            // todo: also this should be some kind of constant
             let promotable_kinds = [
                 PieceKind::Queen,
                 PieceKind::Rook,
                 PieceKind::Bishop,
                 PieceKind::Knight,
-            ]
-                .map(|it| Some(it));
+            ];
 
             promotable_kinds.into_iter().for_each(|promoted_piece| {
                 moves.push(Move {
                     from,
                     to,
-                    promoted_piece_kind: promoted_piece,
+                    promoted_piece_kind: Some(promoted_piece),
                 })
             })
         }
         moves
     }
 
-    fn pawn_valid_moves(&self, i: i32, j: i32, color: &Color) -> Vec<Move> {
+    fn is_initial_pawn_raw(index: SquareIndex, color: &Color) -> bool {
+        match color {
+            Color::White => index >= 8 && index < 16,
+            Color::Black => index >= 48 && index < 56,
+        }
+    }
+
+    fn pawn_valid_moves(&self, index: SquareIndex, color: &Color) -> Vec<Move> {
         let mut moves = Vec::new();
         let dir = match color {
             Color::White => 1,
             Color::Black => -1,
         };
-        let initial_row = match color {
-            Color::White => 1,
-            Color::Black => 6,
-        };
-        if self.within_bounds_and_empty(i + dir, j) {
-            let from = (i as usize, j as usize);
-            let to = ((i + dir) as usize, j as usize);
-            moves.extend(Self::maybe_promotion_moves(from, to, color));
-
-            if self.within_bounds_and_empty(i + 2 * dir, j) && i == initial_row {
-                let from = (i as usize, j as usize);
-                let to = ((i + 2 * dir) as usize, j as usize);
-                moves.push(Move::base_move(from, to));
+        let to_index_single = apply_delta(index, (dir, 0));
+        if let Some(to_index_single) = self.within_bounds_and_empty(to_index_single) {
+            moves.extend(Self::maybe_promotion_moves(index, to_index_single, color));
+            if Self::is_initial_pawn_raw(index, color) {
+                let to_index_double = apply_delta(index, (dir * 2, 0));
+                if let Some(to_index_double) = self.within_bounds_and_empty(to_index_double) {
+                    moves.push(Move::base_move(index, to_index_double));
+                }
             }
         }
-        if self.within_bounds_and_pawn_take_target(i + dir, j + 1, color) {
-            let from = (i as usize, j as usize);
-            let to = ((i + dir) as usize, (j + 1) as usize);
-            moves.extend(Self::maybe_promotion_moves(from, to, color));
+
+        let to_index_take_right = apply_delta(index, (dir, 1));
+        if let Some(to_index_take_right) =
+            self.within_bounds_and_pawn_take_target(to_index_take_right, color)
+        {
+            moves.extend(Self::maybe_promotion_moves(
+                index,
+                to_index_take_right,
+                color,
+            ));
         }
-        if self.within_bounds_and_pawn_take_target(i + dir, j - 1, color) {
-            let from = (i as usize, j as usize);
-            let to = ((i + dir) as usize, (j - 1) as usize);
-            moves.extend(Self::maybe_promotion_moves(from, to, color));
+        let to_index_take_left = apply_delta(index, (dir, -1));
+        if let Some(to_index_take_left) =
+            self.within_bounds_and_pawn_take_target(to_index_take_left, color)
+        {
+            moves.extend(Self::maybe_promotion_moves(
+                index,
+                to_index_take_left,
+                color,
+            ));
         }
         moves
     }
@@ -149,21 +167,22 @@ impl ChessBoard {
             return false;
         }
 
-        let row = match color {
-            Color::White => 0,
-            Color::Black => 7,
+        let empty_square_indexes = match color {
+            Color::White => [1, 2],
+            Color::Black => [57, 58],
         };
-
-        if self.at(row, 1) != Square::Empty {
-            return false;
+        for index in empty_square_indexes {
+            if self.at(index) != Square::Empty {
+                return false;
+            }
         }
 
-        if self.at(row, 2) != Square::Empty {
-            return false;
-        }
-
-        for col in 1..=3 {
-            if self.is_square_checked(row as i32, col, *color) {
+        let non_checked_square_indexes = match color {
+            Color::White => [1, 2, 3],
+            Color::Black => [57, 58, 59],
+        };
+        for index in non_checked_square_indexes {
+            if self.is_square_checked(index, *color) {
                 return false;
             }
         }
@@ -180,25 +199,22 @@ impl ChessBoard {
             return false;
         }
 
-        let row = match color {
-            Color::White => 0,
-            Color::Black => 7,
+        let empty_square_indexes = match color {
+            Color::White => [4, 5, 6],
+            Color::Black => [60, 61, 62],
         };
-
-        if self.at(row, 4) != Square::Empty {
-            return false;
+        for index in empty_square_indexes {
+            if self.at(index) != Square::Empty {
+                return false;
+            }
         }
 
-        if self.at(row, 5) != Square::Empty {
-            return false;
-        }
-
-        if self.at(row, 6) != Square::Empty {
-            return false;
-        }
-
-        for col in 3..=5 {
-            if self.is_square_checked(row as i32, col, *color) {
+        let non_checked_square_indexes = match color {
+            Color::White => [3, 4, 5],
+            Color::Black => [59, 60, 61],
+        };
+        for index in non_checked_square_indexes {
+            if self.is_square_checked(index, *color) {
                 return false;
             }
         }
@@ -206,22 +222,22 @@ impl ChessBoard {
         true
     }
 
-    fn piece_valid_moves(&self, i: i32, j: i32, piece: &Piece) -> Vec<Move> {
+    fn piece_valid_moves(&self, index: SquareIndex, piece: &Piece) -> Vec<Move> {
         match piece.kind {
-            PieceKind::Pawn => self.pawn_valid_moves(i, j, &piece.color),
-            PieceKind::Rook => self.rook_valid_moves(i, j, &piece.color),
-            PieceKind::Bishop => self.bishop_valid_moves(i, j, &piece.color),
-            PieceKind::Queen => self.queen_valid_moves(i, j, &piece.color),
-            PieceKind::Knight => self.knight_valid_moves(i, j, &piece.color),
-            PieceKind::King => self.king_valid_moves(i, j, &piece.color),
+            PieceKind::Pawn => self.pawn_valid_moves(index, &piece.color),
+            PieceKind::Rook => self.rook_valid_moves(index, &piece.color),
+            PieceKind::Bishop => self.bishop_valid_moves(index, &piece.color),
+            PieceKind::Queen => self.queen_valid_moves(index, &piece.color),
+            PieceKind::Knight => self.knight_valid_moves(index, &piece.color),
+            PieceKind::King => self.king_valid_moves(index, &piece.color),
         }
     }
 
     pub fn all_possible_moves(&self, color: Color) -> Vec<Move> {
         let mut moves = Vec::new();
-        self.for_each_piece(|i, j, piece| {
+        self.for_each_piece(|index, piece| {
             if piece.color == color {
-                let valid_moves = self.piece_valid_moves(i, j, piece);
+                let valid_moves = self.piece_valid_moves(index, piece);
                 moves.extend(valid_moves);
             }
         });
@@ -244,18 +260,18 @@ impl ChessBoard {
     pub fn all_valid_moves(&self, color: Color) -> Vec<Move> {
         let mut moves = self.filter_king_going_under_check(self.all_possible_moves(color));
         if self.is_kingside_castle_possible(&color) {
-            let row = match color {
-                Color::White => 0,
-                Color::Black => 7,
+            let (from, to) = match color {
+                Color::White => (3, 1),
+                Color::Black => (59, 57),
             };
-            moves.push(Move::base_move((row, 3), (row, 1)))
+            moves.push(Move::base_move(from, to))
         }
         if self.is_queenside_castle_possible(&color) {
-            let row = match color {
-                Color::White => 0,
-                Color::Black => 7,
+            let (from, to) = match color {
+                Color::White => (3, 5),
+                Color::Black => (59, 61),
             };
-            moves.push(Move::base_move((row, 3), (row, 5)))
+            moves.push(Move::base_move(from, to))
         }
         moves
     }

@@ -2,41 +2,40 @@ use crate::chess_board::*;
 use crate::chess_piece::*;
 
 impl ChessBoard {
-    fn find_king(self, color: Color) -> (i32, i32) {
+    fn find_king(self, color: Color) -> SquareIndex {
         let king_bit_board = match color {
             Color::White => self.white_pieces & self.kings,
             Color::Black => self.black_pieces & self.kings,
         };
-        let king_position = king_bit_board.trailing_zeros();
-        ((king_position / 8) as i32, (king_position % 8) as i32)
+        king_bit_board.trailing_zeros() as SquareIndex
     }
 
-    fn is_square_checked_by_knight(self, i: i32, j: i32, color: Color) -> bool {
+    fn is_square_checked_by_knight(self, index: SquareIndex, color: Color) -> bool {
         let piece_to_find = Piece {
             kind: PieceKind::Knight,
             color: !color,
         };
-        self.contains_piece_in_any_direction(i, j, piece_to_find, knight_directions().to_vec())
+        self.contains_piece_in_any_direction(index, piece_to_find, knight_directions().to_vec())
     }
 
-    fn is_square_checked_by_slider(self, i: i32, j: i32, color: Color) -> bool {
-        for (di, dj) in king_directions() {
+    fn is_square_checked_by_slider(self, index: SquareIndex, color: Color) -> bool {
+        for delta in king_directions() {
             let mut dist = 1;
-            while self.within_bounds_and_empty(i + di * dist, j + dj * dist) {
+            while self.within_bounds_and_empty(apply_delta_with_dist(index, delta, dist)).is_some() {
                 dist += 1;
             }
-            match self.maybe_piece_at(i + di * dist, j + dj * dist) {
+            match self.maybe_piece_at(apply_delta_with_dist(index, delta, dist)) {
                 None => {}
                 Some(piece) => {
                     if piece.color != color {
                         match piece.kind {
                             PieceKind::Rook => {
-                                if di * dj == 0 {
+                                if delta.0 * delta.1 == 0 {
                                     return true;
                                 }
                             }
                             PieceKind::Bishop => {
-                                if di * dj != 0 {
+                                if delta.0 * delta.1 != 0 {
                                     return true;
                                 }
                             }
@@ -52,21 +51,21 @@ impl ChessBoard {
         false
     }
 
-    fn is_square_checked_by_king(self, i: i32, j: i32, color: Color) -> bool {
+    fn is_square_checked_by_king(self, index: SquareIndex, color: Color) -> bool {
         let piece_to_find = Piece {
             kind: PieceKind::King,
             color: !color,
         };
-        self.contains_piece_in_any_direction(i, j, piece_to_find, king_directions().to_vec())
+        self.contains_piece_in_any_direction(index, piece_to_find, king_directions().to_vec())
     }
 
-    pub fn is_square_checked_by_pawn(self, i: i32, j: i32, color: Color) -> bool {
+    pub fn is_square_checked_by_pawn(self, index: SquareIndex, color: Color) -> bool {
         let di = match color {
             Color::White => 1,
             Color::Black => -1,
         };
         for dj in [1, -1] {
-            match self.maybe_piece_at(i + di, j + dj) {
+            match self.maybe_piece_at(apply_delta(index, (di, dj))) {
                 None => {}
                 Some(piece) => {
                     if piece.kind == PieceKind::Pawn && color != piece.color {
@@ -78,16 +77,15 @@ impl ChessBoard {
         false
     }
 
-    pub fn is_square_checked(self, i: i32, j: i32, color: Color) -> bool {
-        self.is_square_checked_by_slider(i, j, color)
-            || self.is_square_checked_by_knight(i, j, color)
-            || self.is_square_checked_by_king(i, j, color)
-            || self.is_square_checked_by_pawn(i, j, color)
+    pub fn is_square_checked(self, index: SquareIndex, color: Color) -> bool {
+        self.is_square_checked_by_slider(index, color)
+            || self.is_square_checked_by_knight(index, color)
+            || self.is_square_checked_by_king(index, color)
+            || self.is_square_checked_by_pawn(index, color)
     }
 
     pub fn is_king_checked(self, color: Color) -> bool {
-        let (i, j) = self.find_king(color);
-        self.is_square_checked(i, j, color)
+        self.is_square_checked(self.find_king(color), color)
     }
 
     pub fn king_cannot_move(self, color: Color) -> bool {
@@ -96,9 +94,8 @@ impl ChessBoard {
 
     // todo: implement properly
     pub fn is_stalemate(self) -> bool {
-        for i in 0..8 {
-            for j in 0..8 {
-                match self.at(i, j) {
+        for index in 0..64 {
+            match self.at(index) {
                     Square::Occupied(piece) => {
                         if piece.kind != PieceKind::King {
                             return false;
@@ -106,7 +103,6 @@ impl ChessBoard {
                     }
                     _ => {}
                 }
-            }
         }
         true
     }

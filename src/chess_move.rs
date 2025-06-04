@@ -1,17 +1,16 @@
-use crate::chess_board::{ChessBoard, Square};
-use crate::chess_piece::{Piece, PieceKind};
+use crate::chess_board::{ChessBoard, Square, SquareIndex};
+use crate::chess_piece::{Color, Piece, PieceKind};
 use regex::Regex;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Move {
-    // TODO: use u8 instead of (usize, usize)
-    pub from: (usize, usize),
-    pub to: (usize, usize),
+    pub from: SquareIndex,
+    pub to: SquareIndex,
     pub promoted_piece_kind: Option<PieceKind>,
 }
 
 impl Move {
-    pub fn base_move(from: (usize, usize), to: (usize, usize)) -> Self {
+    pub fn base_move(from: SquareIndex, to: SquareIndex) -> Self {
         Self {
             from,
             to,
@@ -42,17 +41,17 @@ impl Move {
             Some(piece_kind)
         };
         Move {
-            from: (from_row, from_col),
-            to: (to_row, to_col),
+            from: (from_row * 8 + from_col) as u8,
+            to: (to_row * 8 + to_col) as u8,
             promoted_piece_kind: promoted_piece,
         }
     }
 
     pub fn to_uci_string(&self) -> String {
-        let from_row = char::from(self.from.0 as u8 + b'1');
-        let from_col = char::from(self.from.1 as u8 + b'a');
-        let to_row = char::from(self.to.0 as u8 + b'1');
-        let to_col = char::from(self.to.1 as u8 + b'a');
+        let from_row = char::from(self.from / 8 + b'1');
+        let from_col = char::from(self.from % 8 + b'a');
+        let to_row = char::from(self.to / 8 + b'1');
+        let to_col = char::from(self.to % 8 + b'a');
         match self.promoted_piece_kind {
             None => format!("{}{}{}{}", from_col, from_row, to_col, to_row),
             Some(piece_kind) => {
@@ -78,15 +77,15 @@ impl Move {
 impl ChessBoard {
     fn castle_invalidation(&mut self, mov: &Move) {
         match mov.from {
-            (0, 0) => self.set_white_castle_kingside(false),
-            (0, 7) => self.set_white_castle_queenside(false),
-            (7, 0) => self.set_black_castle_kingside(false),
-            (7, 7) => self.set_black_castle_queenside(false),
-            (0, 3) => {
+            0 => self.set_white_castle_kingside(false),
+            7 => self.set_white_castle_queenside(false),
+            56 => self.set_black_castle_kingside(false),
+            63 => self.set_black_castle_queenside(false),
+            3 => {
                 self.set_white_castle_kingside(false);
                 self.set_white_castle_queenside(false);
             }
-            (7, 3) => {
+            59 => {
                 self.set_black_castle_kingside(false);
                 self.set_black_castle_queenside(false);
             }
@@ -94,10 +93,10 @@ impl ChessBoard {
         }
 
         match mov.to {
-            (0, 0) => self.set_white_castle_kingside(false),
-            (0, 7) => self.set_white_castle_queenside(false),
-            (7, 0) => self.set_black_castle_kingside(false),
-            (7, 7) => self.set_black_castle_queenside(false),
+            0 => self.set_white_castle_kingside(false),
+            7 => self.set_white_castle_queenside(false),
+            56 => self.set_black_castle_kingside(false),
+            63 => self.set_black_castle_queenside(false),
             _ => {}
         }
     }
@@ -107,18 +106,22 @@ impl ChessBoard {
             return;
         }
 
-        if mov.from.1 != 3 {
-            return;
-        }
-
-        if mov.to.1 == 1 {
-            self.set_at(mov.from.0, 2, self.at(mov.from.0, 0));
-            self.set_at(mov.from.0, 0, Square::Empty);
-        }
-
-        if mov.to.1 == 5 {
-            self.set_at(mov.from.0, 4, self.at(mov.from.0, 7));
-            self.set_at(mov.from.0, 7, Square::Empty);
+        if mov.from == 3 {
+            if mov.to == 1 {
+                self.set_at(2, Square::Occupied(Piece::white_rook()));
+                self.set_at(0, Square::Empty)
+            } else if mov.to == 5 {
+                self.set_at(4, Square::Occupied(Piece::white_rook()));
+                self.set_at(7, Square::Empty)
+            }
+        } else if mov.from == 59 {
+            if mov.to == 57 {
+                self.set_at(58, Square::Occupied(Piece::black_rook()));
+                self.set_at(56, Square::Empty)
+            } else if mov.to == 61 {
+                self.set_at(60, Square::Occupied(Piece::black_rook()));
+                self.set_at(63, Square::Empty)
+            }
         }
     }
 
@@ -126,29 +129,35 @@ impl ChessBoard {
         match (moving_piece.kind, self.en_passant_target_square()) {
             (PieceKind::Pawn, Some(en_passant_square)) => {
                 if mov.to == en_passant_square {
-                    self.set_at(mov.from.0, en_passant_square.1, Square::Empty)
+                    let square_to_clear = match moving_piece.color {
+                        Color::White => en_passant_square - 8,
+                        Color::Black => en_passant_square + 8
+                    };
+                    self.set_at(square_to_clear, Square::Empty)
                 }
             }
             _ => {}
         }
     }
 
+    fn is_double_pawn_move(mov: &Move, moving_piece: &Piece) -> bool {
+        if moving_piece.kind != PieceKind::Pawn {
+            return false;
+        }
+
+        mov.from.abs_diff(mov.to) > 9
+    }
+
     fn update_en_passant_target_square(&mut self, mov: &Move, moving_piece: &Piece) {
-        match moving_piece.kind {
-            PieceKind::Pawn => {
-                let move_length = mov.from.0.abs_diff(mov.to.0);
-                if move_length == 1 {
-                    self.set_en_passant_target_square(None)
-                } else {
-                    self.set_en_passant_target_square(Some(((mov.from.0 + mov.to.0) / 2, mov.to.1)))
-                }
-            }
-            _ => self.set_en_passant_target_square(None),
+        if Self::is_double_pawn_move(mov, moving_piece) {
+            self.set_en_passant_target_square(Some((mov.from + mov.to) / 2))
+        } else {
+            self.set_en_passant_target_square(None)
         }
     }
 
     pub fn move_piece(&mut self, mov: &Move) {
-        let moving_piece = match self.at(mov.from.0, mov.from.1) {
+        let moving_piece = match self.at(mov.from) {
             Square::Occupied(piece) => piece,
             Square::Empty => panic!("Invalid move: Cannot move from empty square"),
         };
@@ -166,9 +175,8 @@ impl ChessBoard {
             },
         };
 
-
-        self.set_at(mov.from.0, mov.from.1, Square::Empty);
-        self.set_at(mov.to.0, mov.to.1, Square::Occupied(promoted_piece));
+        self.set_at(mov.from, Square::Empty);
+        self.set_at(mov.to, Square::Occupied(promoted_piece));
 
         self.next_turn();
     }

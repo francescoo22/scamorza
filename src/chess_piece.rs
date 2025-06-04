@@ -121,6 +121,7 @@ impl Piece {
     }
 }
 
+// todo: these functions should be const somehow
 pub(crate) fn knight_directions() -> [(i32, i32); 8] {
     [
         (1, 2),
