@@ -1,3 +1,3 @@
-mod checked_squares_utils;
+mod moves_generation_utils;
 mod chess_move;
 pub mod valid_moves;

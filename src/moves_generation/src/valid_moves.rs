@@ -1,7 +1,7 @@
-use crate::checked_squares_utils::{
+use crate::chess_move::Move;
+use crate::moves_generation_utils::{
     apply_delta, apply_delta_with_dist, is_king_checked, is_square_checked,
 };
-use crate::chess_move::Move;
 use board_representation::chess_board::{ChessBoard, Square, SquareIndex, SquareIndexDelta};
 use board_representation::chess_piece::{
     Color, Piece, PieceKind, BISHOP_DIRECTIONS, KING_DIRECTIONS, KNIGHT_DIRECTIONS,
@@ -217,7 +217,7 @@ fn piece_valid_moves(board: &ChessBoard, index: SquareIndex, piece: &Piece) -> V
     }
 }
 
-pub fn all_possible_moves(board: &ChessBoard, color: Color) -> Vec<Move> {
+fn all_possible_moves(board: &ChessBoard, color: Color) -> Vec<Move> {
     let mut moves = Vec::new();
     board.for_each_piece(|index, piece| {
         if piece.color == color {

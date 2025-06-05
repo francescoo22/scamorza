@@ -98,4 +98,12 @@ impl ChessBoard {
             Some(piece) => piece == piece_to_find,
         }
     }
+
+    pub fn find_king(&self, color: Color) -> SquareIndex {
+        let king_bit_board = match color {
+            Color::White => self.white_pieces & self.kings,
+            Color::Black => self.black_pieces & self.kings,
+        };
+        king_bit_board.trailing_zeros() as SquareIndex
+    }
 }
