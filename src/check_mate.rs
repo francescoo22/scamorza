@@ -1,4 +1,5 @@
 use crate::chess_board::*;
+use crate::chess_board_utils::{apply_delta, apply_delta_with_dist};
 use crate::chess_piece::*;
 
 impl ChessBoard {

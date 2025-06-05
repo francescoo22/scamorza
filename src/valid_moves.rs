@@ -1,6 +1,7 @@
 use crate::chess_board::{
-    apply_delta, apply_delta_with_dist, ChessBoard, Square, SquareIndex, SquareIndexDelta,
+    ChessBoard, Square, SquareIndex, SquareIndexDelta,
 };
+use crate::chess_board_utils::{apply_delta, apply_delta_with_dist};
 use crate::chess_move::Move;
 use crate::chess_piece::{
     Color, Piece, PieceKind, BISHOP_DIRECTIONS, KING_DIRECTIONS, KNIGHT_DIRECTIONS,
