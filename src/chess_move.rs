@@ -101,7 +101,7 @@ impl ChessBoard {
         }
     }
 
-    fn move_rook_if_castle(&mut self, mov: &Move, moving_piece: &Piece) {
+    fn move_rook_when_castling(&mut self, mov: &Move, moving_piece: &Piece) {
         if moving_piece.kind != PieceKind::King {
             return;
         }
@@ -162,7 +162,7 @@ impl ChessBoard {
         };
 
         self.castle_invalidation(mov);
-        self.move_rook_if_castle(mov, &moving_piece);
+        self.move_rook_when_castling(mov, &moving_piece);
         self.remove_piece_after_en_passant(mov, &moving_piece);
         self.update_en_passant_target_square(mov, &moving_piece);
 
