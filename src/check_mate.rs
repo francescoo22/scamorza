@@ -15,11 +15,11 @@ impl ChessBoard {
             kind: PieceKind::Knight,
             color: !color,
         };
-        self.contains_piece_in_any_direction(index, piece_to_find, knight_directions().to_vec())
+        self.contains_piece_in_any_direction(index, piece_to_find, &KNIGHT_DIRECTIONS)
     }
 
     fn is_square_checked_by_slider(self, index: SquareIndex, color: Color) -> bool {
-        for delta in king_directions() {
+        for delta in KING_DIRECTIONS {
             let mut dist = 1;
             while self.within_bounds_and_empty(apply_delta_with_dist(index, delta, dist)).is_some() {
                 dist += 1;
@@ -56,7 +56,7 @@ impl ChessBoard {
             kind: PieceKind::King,
             color: !color,
         };
-        self.contains_piece_in_any_direction(index, piece_to_find, king_directions().to_vec())
+        self.contains_piece_in_any_direction(index, piece_to_find, &KING_DIRECTIONS)
     }
 
     pub fn is_square_checked_by_pawn(self, index: SquareIndex, color: Color) -> bool {

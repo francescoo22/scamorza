@@ -1,5 +1,5 @@
 use crate::chess_board::{ChessBoard, Square, SquareIndex};
-use crate::chess_piece::{Color, Piece, PieceKind};
+use crate::chess_piece::{Color, Piece, PieceKind, BLACK_ROOK, WHITE_ROOK};
 use regex::Regex;
 
 #[derive(Copy, Clone, Debug)]
@@ -108,18 +108,18 @@ impl ChessBoard {
 
         if mov.from == 3 {
             if mov.to == 1 {
-                self.set_at(2, Square::Occupied(Piece::white_rook()));
+                self.set_at(2, Square::Occupied(WHITE_ROOK));
                 self.set_at(0, Square::Empty)
             } else if mov.to == 5 {
-                self.set_at(4, Square::Occupied(Piece::white_rook()));
+                self.set_at(4, Square::Occupied(WHITE_ROOK));
                 self.set_at(7, Square::Empty)
             }
         } else if mov.from == 59 {
             if mov.to == 57 {
-                self.set_at(58, Square::Occupied(Piece::black_rook()));
+                self.set_at(58, Square::Occupied(BLACK_ROOK));
                 self.set_at(56, Square::Empty)
             } else if mov.to == 61 {
-                self.set_at(60, Square::Occupied(Piece::black_rook()));
+                self.set_at(60, Square::Occupied(BLACK_ROOK));
                 self.set_at(63, Square::Empty)
             }
         }

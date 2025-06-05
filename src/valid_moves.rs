@@ -1,8 +1,8 @@
-use crate::chess_board::{apply_delta, apply_delta_with_dist, ChessBoard, Square, SquareIndex, SquareIndexDelta};
-use crate::chess_move::Move;
-use crate::chess_piece::{
-    bishop_directions, king_directions, knight_directions, rook_directions, Color, Piece, PieceKind,
+use crate::chess_board::{
+    apply_delta, apply_delta_with_dist, ChessBoard, Square, SquareIndex, SquareIndexDelta,
 };
+use crate::chess_move::Move;
+use crate::chess_piece::{Color, Piece, PieceKind, BISHOP_DIRECTIONS, KING_DIRECTIONS, KNIGHT_DIRECTIONS, PROMOTABLE_KINDS, ROOK_DIRECTIONS};
 
 // TODO: use builder for valid moves creation
 impl ChessBoard {
@@ -10,7 +10,7 @@ impl ChessBoard {
         &self,
         index: SquareIndex,
         color: &Color,
-        directions: &Vec<SquareIndexDelta>,
+        directions: &[SquareIndexDelta],
     ) -> Vec<Move> {
         let mut moves: Vec<Move> = Vec::new();
         for delta in directions {
@@ -40,7 +40,7 @@ impl ChessBoard {
         &self,
         index: SquareIndex,
         color: &Color,
-        directions: &Vec<SquareIndexDelta>,
+        directions: &[SquareIndexDelta],
     ) -> Vec<Move> {
         let mut moves = Vec::new();
 
@@ -58,23 +58,23 @@ impl ChessBoard {
     }
 
     fn knight_valid_moves(&self, index: SquareIndex, color: &Color) -> Vec<Move> {
-        self.leaper_valid_moves(index, color, &knight_directions().to_vec())
+        self.leaper_valid_moves(index, color, &KNIGHT_DIRECTIONS)
     }
 
     fn king_valid_moves(&self, index: SquareIndex, color: &Color) -> Vec<Move> {
-        self.leaper_valid_moves(index, color, &king_directions().to_vec())
+        self.leaper_valid_moves(index, color, &KING_DIRECTIONS)
     }
 
     fn rook_valid_moves(&self, index: SquareIndex, color: &Color) -> Vec<Move> {
-        self.slider_valid_moves(index, color, &rook_directions().to_vec())
+        self.slider_valid_moves(index, color, &ROOK_DIRECTIONS)
     }
 
     fn bishop_valid_moves(&self, index: SquareIndex, color: &Color) -> Vec<Move> {
-        self.slider_valid_moves(index, color, &bishop_directions().to_vec())
+        self.slider_valid_moves(index, color, &BISHOP_DIRECTIONS)
     }
 
     fn queen_valid_moves(&self, index: SquareIndex, color: &Color) -> Vec<Move> {
-        self.slider_valid_moves(index, color, &king_directions().to_vec())
+        self.slider_valid_moves(index, color, &KING_DIRECTIONS)
     }
 
     fn is_promotion_row(index: SquareIndex, color: &Color) -> bool {
@@ -90,15 +90,7 @@ impl ChessBoard {
         if !Self::is_promotion_row(to, color) {
             moves.push(Move::base_move(from, to));
         } else {
-            // todo: also this should be some kind of constant
-            let promotable_kinds = [
-                PieceKind::Queen,
-                PieceKind::Rook,
-                PieceKind::Bishop,
-                PieceKind::Knight,
-            ];
-
-            promotable_kinds.into_iter().for_each(|promoted_piece| {
+            PROMOTABLE_KINDS.into_iter().for_each(|promoted_piece| {
                 moves.push(Move {
                     from,
                     to,

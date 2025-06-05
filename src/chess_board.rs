@@ -1,5 +1,5 @@
 use crate::chess_move::Move;
-use crate::chess_piece::{Color, Piece, PieceKind};
+use crate::chess_piece::*;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::fmt::Formatter;
@@ -247,7 +247,7 @@ impl ChessBoard {
         self,
         index: SquareIndex,
         piece_to_find: Piece,
-        directions: Vec<SquareIndexDelta>,
+        directions: &[SquareIndexDelta],
     ) -> bool {
         directions
             .iter()
@@ -390,18 +390,18 @@ impl FromStr for ChessBoard {
                     }
                     _ => {
                         let piece = match c {
-                            'P' => Piece::white_pawn(),
-                            'N' => Piece::white_knight(),
-                            'B' => Piece::white_bishop(),
-                            'R' => Piece::white_rook(),
-                            'Q' => Piece::white_queen(),
-                            'K' => Piece::white_king(),
-                            'p' => Piece::black_pawn(),
-                            'n' => Piece::black_knight(),
-                            'b' => Piece::black_bishop(),
-                            'r' => Piece::black_rook(),
-                            'q' => Piece::black_queen(),
-                            'k' => Piece::black_king(),
+                            'P' => WHITE_PAWN,
+                            'N' => WHITE_KNIGHT,
+                            'B' => WHITE_BISHOP,
+                            'R' => WHITE_ROOK,
+                            'Q' => WHITE_QUEEN,
+                            'K' => WHITE_KING,
+                            'p' => BLACK_PAWN,
+                            'n' => BLACK_KNIGHT,
+                            'b' => BLACK_BISHOP,
+                            'r' => BLACK_ROOK,
+                            'q' => BLACK_QUEEN,
+                            'k' => BLACK_KING,
                             _ => panic!(
                                 "Invalid FEN character, expected a piece representation (PNBRQKpnbrqk), found '{}'",
                                 c
