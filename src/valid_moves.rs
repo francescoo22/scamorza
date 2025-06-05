@@ -1,6 +1,4 @@
-use crate::chess_board::{
-    apply_delta, apply_delta_with_dist, ChessBoard, Square, SquareIndex,
-};
+use crate::chess_board::{apply_delta, apply_delta_with_dist, ChessBoard, Square, SquareIndex, SquareIndexDelta};
 use crate::chess_move::Move;
 use crate::chess_piece::{
     bishop_directions, king_directions, knight_directions, rook_directions, Color, Piece, PieceKind,
@@ -12,7 +10,7 @@ impl ChessBoard {
         &self,
         index: SquareIndex,
         color: &Color,
-        directions: &Vec<(i32, i32)>,
+        directions: &Vec<SquareIndexDelta>,
     ) -> Vec<Move> {
         let mut moves: Vec<Move> = Vec::new();
         for delta in directions {
@@ -42,7 +40,7 @@ impl ChessBoard {
         &self,
         index: SquareIndex,
         color: &Color,
-        directions: &Vec<(i32, i32)>,
+        directions: &Vec<SquareIndexDelta>,
     ) -> Vec<Move> {
         let mut moves = Vec::new();
 

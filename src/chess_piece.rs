@@ -1,3 +1,4 @@
+use crate::chess_board::SquareIndexDelta;
 use std::fmt;
 use std::fmt::Formatter;
 use std::ops::Not;
@@ -122,7 +123,7 @@ impl Piece {
 }
 
 // todo: these functions should be const somehow
-pub(crate) fn knight_directions() -> [(i32, i32); 8] {
+pub(crate) fn knight_directions() -> [SquareIndexDelta; 8] {
     [
         (1, 2),
         (2, 1),
@@ -135,15 +136,15 @@ pub(crate) fn knight_directions() -> [(i32, i32); 8] {
     ]
 }
 
-pub(crate) fn rook_directions() -> [(i32, i32); 4] {
+pub(crate) fn rook_directions() -> [SquareIndexDelta; 4] {
     [(0, 1), (1, 0), (-1, 0), (0, -1)]
 }
 
-pub(crate) fn bishop_directions() -> [(i32, i32); 4] {
+pub(crate) fn bishop_directions() -> [SquareIndexDelta; 4] {
     [(1, 1), (1, -1), (-1, 1), (-1, -1)]
 }
 
-pub fn king_directions() -> [(i32, i32); 8] {
+pub fn king_directions() -> [SquareIndexDelta; 8] {
     [
         (1, 0),
         (0, 1),

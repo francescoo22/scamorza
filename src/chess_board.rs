@@ -12,23 +12,24 @@ pub enum Square {
 }
 
 pub type SquareIndex = u8;
-pub type UnsafeSquareIndex = i32;
+pub type UnsafeSquareIndex = i8;
+pub type SquareIndexDelta = (i8, i8);
 
-pub fn apply_delta(index: SquareIndex, delta: (i32, i32)) -> UnsafeSquareIndex {
-    let i32index = index as i32;
-    if i32index / 8 + delta.0 >= 0
-        && i32index / 8 + delta.0 < 8
-        && i32index % 8 + delta.1 >= 0
-        && i32index % 8 + delta.1 < 8
+pub fn apply_delta(index: SquareIndex, delta: SquareIndexDelta) -> UnsafeSquareIndex {
+    let i8index = index as i8;
+    if i8index / 8 + delta.0 >= 0
+        && i8index / 8 + delta.0 < 8
+        && i8index % 8 + delta.1 >= 0
+        && i8index % 8 + delta.1 < 8
     {
-        i32index + delta.0 * 8 + delta.1
+        i8index + delta.0 * 8 + delta.1
     } else {
         -1
     }
 }
 
-pub fn apply_delta_with_dist(index: SquareIndex, delta: (i32, i32), dist: u8) -> UnsafeSquareIndex {
-    apply_delta(index, (delta.0 * dist as i32, delta.1 * dist as i32))
+pub fn apply_delta_with_dist(index: SquareIndex, delta: SquareIndexDelta, dist: u8) -> UnsafeSquareIndex {
+    apply_delta(index, (delta.0 * dist as i8, delta.1 * dist as i8))
 }
 
 impl fmt::Display for Square {
@@ -246,7 +247,7 @@ impl ChessBoard {
         self,
         index: SquareIndex,
         piece_to_find: Piece,
-        directions: Vec<(i32, i32)>,
+        directions: Vec<SquareIndexDelta>,
     ) -> bool {
         directions
             .iter()
