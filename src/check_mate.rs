@@ -91,20 +91,4 @@ impl ChessBoard {
     pub fn is_king_checked(self, color: Color) -> bool {
         self.is_square_checked(self.find_king(color), color)
     }
-
-    pub fn king_cannot_move(self, color: Color) -> bool {
-        self.is_king_checked(color) && self.all_valid_moves(color).is_empty()
-    }
-
-    // todo: implement properly
-    pub fn is_stalemate(self) -> bool {
-        for index in 0..64 {
-            if let Square::Occupied(piece) = self.at(index) {
-                if piece.kind != PieceKind::King {
-                    return false;
-                }
-            }
-        }
-        true
-    }
 }
