@@ -2,7 +2,10 @@ use crate::chess_board::{
     apply_delta, apply_delta_with_dist, ChessBoard, Square, SquareIndex, SquareIndexDelta,
 };
 use crate::chess_move::Move;
-use crate::chess_piece::{Color, Piece, PieceKind, BISHOP_DIRECTIONS, KING_DIRECTIONS, KNIGHT_DIRECTIONS, PROMOTABLE_KINDS, ROOK_DIRECTIONS};
+use crate::chess_piece::{
+    Color, Piece, PieceKind, BISHOP_DIRECTIONS, KING_DIRECTIONS, KNIGHT_DIRECTIONS,
+    PROMOTABLE_KINDS, ROOK_DIRECTIONS,
+};
 
 // TODO: use builder for valid moves creation
 impl ChessBoard {
@@ -239,8 +242,8 @@ impl ChessBoard {
             .iter()
             .filter(|mov| {
                 let piece = self.piece_at_source_or_panic(mov);
-                let mut board_after_move = self.clone();
-                board_after_move.move_piece(&mov);
+                let mut board_after_move = *self;
+                board_after_move.move_piece(mov);
                 !board_after_move.is_king_checked(piece.color)
             })
             .copied()

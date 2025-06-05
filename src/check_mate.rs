@@ -21,7 +21,10 @@ impl ChessBoard {
     fn is_square_checked_by_slider(self, index: SquareIndex, color: Color) -> bool {
         for delta in KING_DIRECTIONS {
             let mut dist = 1;
-            while self.within_bounds_and_empty(apply_delta_with_dist(index, delta, dist)).is_some() {
+            while self
+                .within_bounds_and_empty(apply_delta_with_dist(index, delta, dist))
+                .is_some()
+            {
                 dist += 1;
             }
             match self.maybe_piece_at(apply_delta_with_dist(index, delta, dist)) {
@@ -95,14 +98,11 @@ impl ChessBoard {
     // todo: implement properly
     pub fn is_stalemate(self) -> bool {
         for index in 0..64 {
-            match self.at(index) {
-                    Square::Occupied(piece) => {
-                        if piece.kind != PieceKind::King {
-                            return false;
-                        }
-                    }
-                    _ => {}
+            if let Square::Occupied(piece) = self.at(index) {
+                if piece.kind != PieceKind::King {
+                    return false;
                 }
+            }
         }
         true
     }

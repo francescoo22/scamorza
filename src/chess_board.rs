@@ -28,7 +28,11 @@ pub fn apply_delta(index: SquareIndex, delta: SquareIndexDelta) -> UnsafeSquareI
     }
 }
 
-pub fn apply_delta_with_dist(index: SquareIndex, delta: SquareIndexDelta, dist: u8) -> UnsafeSquareIndex {
+pub fn apply_delta_with_dist(
+    index: SquareIndex,
+    delta: SquareIndexDelta,
+    dist: u8,
+) -> UnsafeSquareIndex {
     apply_delta(index, (delta.0 * dist as i8, delta.1 * dist as i8))
 }
 

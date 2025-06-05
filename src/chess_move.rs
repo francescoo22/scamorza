@@ -47,7 +47,7 @@ impl Move {
         }
     }
 
-    pub fn to_uci_string(&self) -> String {
+    pub fn to_uci_string(self) -> String {
         let from_row = char::from(self.from / 8 + b'1');
         let from_col = char::from(self.from % 8 + b'a');
         let to_row = char::from(self.to / 8 + b'1');
@@ -126,17 +126,16 @@ impl ChessBoard {
     }
 
     fn remove_piece_after_en_passant(&mut self, mov: &Move, moving_piece: &Piece) {
-        match (moving_piece.kind, self.en_passant_target_square()) {
-            (PieceKind::Pawn, Some(en_passant_square)) => {
-                if mov.to == en_passant_square {
-                    let square_to_clear = match moving_piece.color {
-                        Color::White => en_passant_square - 8,
-                        Color::Black => en_passant_square + 8
-                    };
-                    self.set_at(square_to_clear, Square::Empty)
-                }
+        if let (PieceKind::Pawn, Some(en_passant_square)) =
+            (moving_piece.kind, self.en_passant_target_square())
+        {
+            if mov.to == en_passant_square {
+                let square_to_clear = match moving_piece.color {
+                    Color::White => en_passant_square - 8,
+                    Color::Black => en_passant_square + 8,
+                };
+                self.set_at(square_to_clear, Square::Empty)
             }
-            _ => {}
         }
     }
 
