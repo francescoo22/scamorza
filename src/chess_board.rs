@@ -180,11 +180,6 @@ impl ChessBoard {
         }
     }
 
-    pub fn at_2(&self, row: u8, col: u8) -> Square {
-        debug_assert!(row < 8 && col < 8);
-        self.at(row * 8 + col)
-    }
-
     pub fn maybe_piece_at(&self, index: UnsafeSquareIndex) -> Option<Piece> {
         match within_bounds(index) {
             None => None,
@@ -222,11 +217,6 @@ impl ChessBoard {
             }
             Square::Empty => {}
         }
-    }
-
-    pub fn set_at_2(&mut self, row: u8, col: u8, square: Square) {
-        debug_assert!(row < 8 && col < 8);
-        self.set_at(row * 8 + col, square);
     }
 
     pub fn piece_at_source_or_panic(self, mov: &Move) -> Piece {
