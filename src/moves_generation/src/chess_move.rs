@@ -1,5 +1,5 @@
-use crate::chess_board::{ChessBoard, Square, SquareIndex};
-use crate::chess_piece::{Color, Piece, PieceKind, BLACK_ROOK, WHITE_ROOK};
+use board_representation::chess_board::{ChessBoard, Square, SquareIndex};
+use board_representation::chess_piece::{Color, Piece, PieceKind, BLACK_ROOK, WHITE_ROOK};
 use regex::Regex;
 
 #[derive(Copy, Clone, Debug)]
@@ -72,101 +72,99 @@ impl Move {
             }
         }
     }
-}
 
-impl ChessBoard {
-    fn castle_invalidation(&mut self, mov: &Move) {
-        match mov.from {
-            0 => self.set_white_castle_kingside(false),
-            7 => self.set_white_castle_queenside(false),
-            56 => self.set_black_castle_kingside(false),
-            63 => self.set_black_castle_queenside(false),
+    fn castle_invalidation(&self, board: &mut ChessBoard) {
+        match self.from {
+            0 => board.set_white_castle_kingside(false),
+            7 => board.set_white_castle_queenside(false),
+            56 => board.set_black_castle_kingside(false),
+            63 => board.set_black_castle_queenside(false),
             3 => {
-                self.set_white_castle_kingside(false);
-                self.set_white_castle_queenside(false);
+                board.set_white_castle_kingside(false);
+                board.set_white_castle_queenside(false);
             }
             59 => {
-                self.set_black_castle_kingside(false);
-                self.set_black_castle_queenside(false);
+                board.set_black_castle_kingside(false);
+                board.set_black_castle_queenside(false);
             }
             _ => {}
         }
 
-        match mov.to {
-            0 => self.set_white_castle_kingside(false),
-            7 => self.set_white_castle_queenside(false),
-            56 => self.set_black_castle_kingside(false),
-            63 => self.set_black_castle_queenside(false),
+        match self.to {
+            0 => board.set_white_castle_kingside(false),
+            7 => board.set_white_castle_queenside(false),
+            56 => board.set_black_castle_kingside(false),
+            63 => board.set_black_castle_queenside(false),
             _ => {}
         }
     }
 
-    fn move_rook_when_castling(&mut self, mov: &Move, moving_piece: &Piece) {
+    fn move_rook_when_castling(&self, board: &mut ChessBoard, moving_piece: &Piece) {
         if moving_piece.kind != PieceKind::King {
             return;
         }
 
-        if mov.from == 3 {
-            if mov.to == 1 {
-                self.set_at(2, Square::Occupied(WHITE_ROOK));
-                self.set_at(0, Square::Empty)
-            } else if mov.to == 5 {
-                self.set_at(4, Square::Occupied(WHITE_ROOK));
-                self.set_at(7, Square::Empty)
+        if self.from == 3 {
+            if self.to == 1 {
+                board.set_at(2, Square::Occupied(WHITE_ROOK));
+                board.set_at(0, Square::Empty)
+            } else if self.to == 5 {
+                board.set_at(4, Square::Occupied(WHITE_ROOK));
+                board.set_at(7, Square::Empty)
             }
-        } else if mov.from == 59 {
-            if mov.to == 57 {
-                self.set_at(58, Square::Occupied(BLACK_ROOK));
-                self.set_at(56, Square::Empty)
-            } else if mov.to == 61 {
-                self.set_at(60, Square::Occupied(BLACK_ROOK));
-                self.set_at(63, Square::Empty)
+        } else if self.from == 59 {
+            if self.to == 57 {
+                board.set_at(58, Square::Occupied(BLACK_ROOK));
+                board.set_at(56, Square::Empty)
+            } else if self.to == 61 {
+                board.set_at(60, Square::Occupied(BLACK_ROOK));
+                board.set_at(63, Square::Empty)
             }
         }
     }
 
-    fn remove_piece_after_en_passant(&mut self, mov: &Move, moving_piece: &Piece) {
+    fn remove_piece_after_en_passant(&self, board: &mut ChessBoard, moving_piece: &Piece) {
         if let (PieceKind::Pawn, Some(en_passant_square)) =
-            (moving_piece.kind, self.en_passant_target_square())
+            (moving_piece.kind, board.en_passant_target_square())
         {
-            if mov.to == en_passant_square {
+            if self.to == en_passant_square {
                 let square_to_clear = match moving_piece.color {
                     Color::White => en_passant_square - 8,
                     Color::Black => en_passant_square + 8,
                 };
-                self.set_at(square_to_clear, Square::Empty)
+                board.set_at(square_to_clear, Square::Empty)
             }
         }
     }
 
-    fn is_double_pawn_move(mov: &Move, moving_piece: &Piece) -> bool {
+    fn is_double_pawn_move(&self, moving_piece: &Piece) -> bool {
         if moving_piece.kind != PieceKind::Pawn {
             return false;
         }
 
-        mov.from.abs_diff(mov.to) > 9
+        self.from.abs_diff(self.to) > 9
     }
 
-    fn update_en_passant_target_square(&mut self, mov: &Move, moving_piece: &Piece) {
-        if Self::is_double_pawn_move(mov, moving_piece) {
-            self.set_en_passant_target_square(Some((mov.from + mov.to) / 2))
+    fn update_en_passant_target_square(&self, board: &mut ChessBoard, moving_piece: &Piece) {
+        if self.is_double_pawn_move(moving_piece) {
+            board.set_en_passant_target_square(Some((self.from + self.to) / 2))
         } else {
-            self.set_en_passant_target_square(None)
+            board.set_en_passant_target_square(None)
         }
     }
 
-    pub fn move_piece(&mut self, mov: &Move) {
-        let moving_piece = match self.at(mov.from) {
+    pub fn move_piece(&self, board: &mut ChessBoard) {
+        let moving_piece = match board.at(self.from) {
             Square::Occupied(piece) => piece,
             Square::Empty => panic!("Invalid move: Cannot move from empty square"),
         };
 
-        self.castle_invalidation(mov);
-        self.move_rook_when_castling(mov, &moving_piece);
-        self.remove_piece_after_en_passant(mov, &moving_piece);
-        self.update_en_passant_target_square(mov, &moving_piece);
+        self.castle_invalidation(board);
+        self.move_rook_when_castling(board, &moving_piece);
+        self.remove_piece_after_en_passant(board, &moving_piece);
+        self.update_en_passant_target_square(board, &moving_piece);
 
-        let promoted_piece = match mov.promoted_piece_kind {
+        let promoted_piece = match self.promoted_piece_kind {
             None => moving_piece,
             Some(promoted_piece_kind) => Piece {
                 color: moving_piece.color,
@@ -174,14 +172,14 @@ impl ChessBoard {
             },
         };
 
-        self.set_at(mov.from, Square::Empty);
-        self.set_at(mov.to, Square::Occupied(promoted_piece));
+        board.set_at(self.from, Square::Empty);
+        board.set_at(self.to, Square::Occupied(promoted_piece));
 
-        self.next_turn();
+        board.next_turn();
     }
+}
 
-    pub fn move_piece_uci(&mut self, uci: &str) {
-        let mov = Move::from_uci_string(uci);
-        self.move_piece(&mov);
-    }
+pub fn move_piece_uci(board: &mut ChessBoard, uci: &str) {
+    let mov = Move::from_uci_string(uci);
+    mov.move_piece(board);
 }

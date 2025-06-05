@@ -1,27 +1,5 @@
-use crate::chess_board::{ChessBoard, Square, SquareIndex, SquareIndexDelta, UnsafeSquareIndex};
-use crate::chess_move::Move;
+use crate::chess_board::{ChessBoard, Square, SquareIndex, UnsafeSquareIndex};
 use crate::chess_piece::{Color, Piece};
-
-pub fn apply_delta(index: SquareIndex, delta: SquareIndexDelta) -> UnsafeSquareIndex {
-    let i8index = index as i8;
-    if i8index / 8 + delta.0 >= 0
-        && i8index / 8 + delta.0 < 8
-        && i8index % 8 + delta.1 >= 0
-        && i8index % 8 + delta.1 < 8
-    {
-        i8index + delta.0 * 8 + delta.1
-    } else {
-        -1
-    }
-}
-
-pub fn apply_delta_with_dist(
-    index: SquareIndex,
-    delta: SquareIndexDelta,
-    dist: u8,
-) -> UnsafeSquareIndex {
-    apply_delta(index, (delta.0 * dist as i8, delta.1 * dist as i8))
-}
 
 pub fn within_bounds(index: UnsafeSquareIndex) -> Option<SquareIndex> {
     if index >= 0 && index < 64 {
@@ -32,7 +10,7 @@ pub fn within_bounds(index: UnsafeSquareIndex) -> Option<SquareIndex> {
 }
 
 impl ChessBoard {
-    pub(crate) fn for_each_piece<F>(&self, mut block: F)
+    pub fn for_each_piece<F>(&self, mut block: F)
     where
         F: FnMut(SquareIndex, &Piece),
     {
@@ -46,7 +24,7 @@ impl ChessBoard {
         }
     }
 
-    pub(crate) fn within_bounds_and_empty(&self, index: UnsafeSquareIndex) -> Option<SquareIndex> {
+    pub fn within_bounds_and_empty(&self, index: UnsafeSquareIndex) -> Option<SquareIndex> {
         match within_bounds(index) {
             None => None,
             Some(index) => match self.at(index) {
@@ -69,7 +47,7 @@ impl ChessBoard {
         }
     }
 
-    pub(crate) fn within_bounds_and_occupied_by_opponent(
+    pub fn within_bounds_and_occupied_by_opponent(
         &self,
         index: UnsafeSquareIndex,
         color: &Color,
@@ -80,7 +58,7 @@ impl ChessBoard {
         }
     }
 
-    pub(crate) fn within_bounds_and_pawn_take_target(
+    pub fn within_bounds_and_pawn_take_target(
         &self,
         index: UnsafeSquareIndex,
         color: &Color,
@@ -107,8 +85,8 @@ impl ChessBoard {
         }
     }
 
-    pub fn piece_at_source_or_panic(self, mov: &Move) -> Piece {
-        match self.at(mov.from) {
+    pub fn piece_at_source_or_panic(self, index: SquareIndex) -> Piece {
+        match self.at(index) {
             Square::Occupied(piece) => piece,
             Square::Empty => panic!("Invalid move: Cannot move from empty square"),
         }
@@ -119,16 +97,5 @@ impl ChessBoard {
             None => false,
             Some(piece) => piece == piece_to_find,
         }
-    }
-
-    pub fn contains_piece_in_any_direction(
-        self,
-        index: SquareIndex,
-        piece_to_find: Piece,
-        directions: &[SquareIndexDelta],
-    ) -> bool {
-        directions
-            .iter()
-            .any(|delta| self.contains_piece_at(apply_delta(index, *delta), piece_to_find))
     }
 }

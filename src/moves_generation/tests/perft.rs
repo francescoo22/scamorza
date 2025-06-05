@@ -1,16 +1,17 @@
-use chess_engine_poc::chess_board::ChessBoard;
+use board_representation::chess_board::ChessBoard;
+use moves_generation::valid_moves::all_valid_moves;
 use std::str::FromStr;
 
 fn perft(depth: u8, chess_board: &ChessBoard) -> u64 {
     let color = chess_board.current_turn();
-    let moves = chess_board.all_valid_moves(color);
+    let moves = all_valid_moves(chess_board, color);
     if depth == 1 {
         moves.len() as u64
     } else {
         let mut res = 0;
         for mov in moves {
             let mut board_copy = chess_board.clone();
-            board_copy.move_piece(&mov);
+            mov.move_piece(&mut board_copy);
             res += perft(depth - 1, &board_copy);
         }
         res

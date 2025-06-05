@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "chess_engine_poc"
+name = "board_representation"
 version = "0.1.0"

@@ -13,7 +13,7 @@ pub enum PieceKind {
     King,
 }
 
-pub(crate) const PROMOTABLE_KINDS: [PieceKind; 4] = [
+pub const PROMOTABLE_KINDS: [PieceKind; 4] = [
     PieceKind::Queen,
     PieceKind::Rook,
     PieceKind::Bishop,
@@ -39,71 +39,71 @@ impl Not for Color {
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Piece {
-    pub(crate) kind: PieceKind,
-    pub(crate) color: Color,
+    pub kind: PieceKind,
+    pub color: Color,
 }
 
-pub(crate) const WHITE_PAWN: Piece = Piece {
+pub const WHITE_PAWN: Piece = Piece {
     kind: PieceKind::Pawn,
     color: Color::White,
 };
 
-pub(crate) const WHITE_ROOK: Piece = Piece {
+pub const WHITE_ROOK: Piece = Piece {
     kind: PieceKind::Rook,
     color: Color::White,
 };
 
-pub(crate) const WHITE_KNIGHT: Piece = Piece {
+pub const WHITE_KNIGHT: Piece = Piece {
     kind: PieceKind::Knight,
     color: Color::White,
 };
 
-pub(crate) const WHITE_BISHOP: Piece = Piece {
+pub const WHITE_BISHOP: Piece = Piece {
     kind: PieceKind::Bishop,
     color: Color::White,
 };
 
-pub(crate) const WHITE_QUEEN: Piece = Piece {
+pub const WHITE_QUEEN: Piece = Piece {
     kind: PieceKind::Queen,
     color: Color::White,
 };
 
-pub(crate) const WHITE_KING: Piece = Piece {
+pub const WHITE_KING: Piece = Piece {
     kind: PieceKind::King,
     color: Color::White,
 };
 
-pub(crate) const BLACK_PAWN: Piece = Piece {
+pub const BLACK_PAWN: Piece = Piece {
     kind: PieceKind::Pawn,
     color: Color::Black,
 };
 
-pub(crate) const BLACK_ROOK: Piece = Piece {
+pub const BLACK_ROOK: Piece = Piece {
     kind: PieceKind::Rook,
     color: Color::Black,
 };
 
-pub(crate) const BLACK_KNIGHT: Piece = Piece {
+pub const BLACK_KNIGHT: Piece = Piece {
     kind: PieceKind::Knight,
     color: Color::Black,
 };
 
-pub(crate) const BLACK_BISHOP: Piece = Piece {
+pub const BLACK_BISHOP: Piece = Piece {
     kind: PieceKind::Bishop,
     color: Color::Black,
 };
 
-pub(crate) const BLACK_QUEEN: Piece = Piece {
+pub const BLACK_QUEEN: Piece = Piece {
     kind: PieceKind::Queen,
     color: Color::Black,
 };
 
-pub(crate) const BLACK_KING: Piece = Piece {
+pub const BLACK_KING: Piece = Piece {
     kind: PieceKind::King,
     color: Color::Black,
 };
 
-pub(crate) const KNIGHT_DIRECTIONS: [SquareIndexDelta; 8] = [
+pub const KNIGHT_DIRECTIONS: [SquareIndexDelta; 8] = [
     (1, 2),
     (2, 1),
     (-1, 2),
@@ -113,11 +113,11 @@ pub(crate) const KNIGHT_DIRECTIONS: [SquareIndexDelta; 8] = [
     (-1, -2),
     (-2, -1),
 ];
-pub(crate) const BISHOP_DIRECTIONS: [SquareIndexDelta; 4] = [(1, 1), (1, -1), (-1, 1), (-1, -1)];
+pub const BISHOP_DIRECTIONS: [SquareIndexDelta; 4] = [(1, 1), (1, -1), (-1, 1), (-1, -1)];
 
-pub(crate) const ROOK_DIRECTIONS: [SquareIndexDelta; 4] = [(1, 0), (0, 1), (-1, 0), (0, -1)];
+pub const ROOK_DIRECTIONS: [SquareIndexDelta; 4] = [(1, 0), (0, 1), (-1, 0), (0, -1)];
 
-pub(crate) const KING_DIRECTIONS: [SquareIndexDelta; 8] = [
+pub const KING_DIRECTIONS: [SquareIndexDelta; 8] = [
     (1, 1),
     (1, 0),
     (1, -1),
