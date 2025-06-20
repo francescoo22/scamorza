@@ -1,4 +1,3 @@
-use crate::chess_board::SquareIndexDelta;
 use std::fmt;
 use std::fmt::Formatter;
 use std::ops::Not;
@@ -102,31 +101,6 @@ pub const BLACK_KING: Piece = Piece {
     kind: PieceKind::King,
     color: Color::Black,
 };
-
-pub const KNIGHT_DIRECTIONS: [SquareIndexDelta; 8] = [
-    (1, 2),
-    (2, 1),
-    (-1, 2),
-    (2, -1),
-    (1, -2),
-    (-2, 1),
-    (-1, -2),
-    (-2, -1),
-];
-pub const BISHOP_DIRECTIONS: [SquareIndexDelta; 4] = [(1, 1), (1, -1), (-1, 1), (-1, -1)];
-
-pub const ROOK_DIRECTIONS: [SquareIndexDelta; 4] = [(1, 0), (0, 1), (-1, 0), (0, -1)];
-
-pub const KING_DIRECTIONS: [SquareIndexDelta; 8] = [
-    (1, 1),
-    (1, 0),
-    (1, -1),
-    (0, 1),
-    (0, -1),
-    (-1, 1),
-    (-1, 0),
-    (-1, -1),
-];
 
 impl fmt::Display for Piece {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {

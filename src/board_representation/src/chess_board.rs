@@ -19,7 +19,7 @@ impl fmt::Display for Square {
     }
 }
 
-pub(crate) type BitBoard = u64;
+type BitBoard = u64;
 
 #[derive(Clone, Copy)]
 pub struct ChessBoard {
@@ -72,7 +72,6 @@ impl Default for ChessBoard {
 
 pub type SquareIndex = u8;
 pub type UnsafeSquareIndex = i8;
-pub type SquareIndexDelta = (i8, i8);
 
 const WHITE_KINGSIDE_CASTLE_MASK: BitBoard = 1 << 0;
 const WHITE_QUEENSIDE_CASTLE_MASK: BitBoard = 1 << 1;

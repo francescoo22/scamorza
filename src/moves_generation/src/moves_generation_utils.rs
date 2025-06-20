@@ -1,3 +1,4 @@
+use crate::move_directions::{SquareIndexDelta, KING_DIRECTIONS, KNIGHT_DIRECTIONS};
 use board_representation::chess_board::*;
 use board_representation::chess_piece::*;
 
@@ -110,6 +111,6 @@ pub(crate) fn is_square_checked(board: &ChessBoard, index: SquareIndex, color: C
         || is_square_checked_by_pawn(board, index, color)
 }
 
-pub fn is_king_checked(board: &ChessBoard, color: Color) -> bool {
+pub(crate) fn is_king_checked(board: &ChessBoard, color: Color) -> bool {
     is_square_checked(board, board.find_king(color), color)
 }

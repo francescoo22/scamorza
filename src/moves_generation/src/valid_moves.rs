@@ -1,12 +1,10 @@
 use crate::chess_move::Move;
+use crate::move_directions::*;
 use crate::moves_generation_utils::{
     apply_delta, apply_delta_with_dist, is_king_checked, is_square_checked,
 };
-use board_representation::chess_board::{ChessBoard, Square, SquareIndex, SquareIndexDelta};
-use board_representation::chess_piece::{
-    Color, Piece, PieceKind, BISHOP_DIRECTIONS, KING_DIRECTIONS, KNIGHT_DIRECTIONS,
-    PROMOTABLE_KINDS, ROOK_DIRECTIONS,
-};
+use board_representation::chess_board::{ChessBoard, Square, SquareIndex};
+use board_representation::chess_piece::{Color, Piece, PieceKind, PROMOTABLE_KINDS};
 
 // TODO: use builder for valid moves creation
 fn slider_valid_moves(
