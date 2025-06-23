@@ -1,4 +1,4 @@
-use crate::evaluation_constants::{BISHOP_WEIGHT, DOUBLED_PAWN_WEIGHT, ISOLATED_PAWN_WEIGHT, KING_WEIGHT, KNIGHT_WEIGHT, PAWN_WEIGHT, QUEEN_WEIGHT, ROOK_WEIGHT};
+use crate::evaluation_constants::{BISHOP_WEIGHT, BLOCKED_PAWN_WEIGHT, DOUBLED_PAWN_WEIGHT, ISOLATED_PAWN_WEIGHT, KING_WEIGHT, KNIGHT_WEIGHT, PAWN_WEIGHT, QUEEN_WEIGHT, ROOK_WEIGHT};
 use board_representation::chess_board::ChessBoard;
 use board_representation::chess_board_utils::FILE_MASK;
 
@@ -8,6 +8,7 @@ pub struct BoardEvaluator {
     pub eval_material: bool,
     pub eval_doubled_pawns: bool,
     pub eval_isolated_pawns: bool,
+    pub eval_blocked_pawns: bool,
 }
 
 impl BoardEvaluator {
@@ -21,6 +22,9 @@ impl BoardEvaluator {
         }
         if self.eval_isolated_pawns {
             score += eval_isolated_pawns(chess_board)
+        }
+        if self.eval_blocked_pawns {
+            score += eval_blocked_pawns(chess_board)
         }
         score
     }
@@ -90,4 +94,24 @@ fn eval_isolated_pawns(chess_board: &ChessBoard) -> BoardScore {
         }
     }
     ISOLATED_PAWN_WEIGHT * isolated_pawns as f32
+}
+
+
+fn eval_blocked_pawns(chess_board: &ChessBoard) -> BoardScore {
+    // todo: decide what to do with pawns that can take an opponent piece (ignored for now)
+
+    let mut blocked_pawns = 0;
+    let occupied = chess_board.white_pieces | chess_board.black_pieces;
+
+    let white_pawns = chess_board.pawns & chess_board.white_pieces;
+    let white_pawn_pushes = white_pawns << 8;
+    let white_blockers = white_pawn_pushes & occupied;
+    blocked_pawns += white_blockers.count_ones() as i32;
+
+    let black_pawns = chess_board.pawns & chess_board.black_pieces;
+    let black_pawn_pushes = black_pawns >> 8;
+    let black_blockers = black_pawn_pushes & occupied;
+    blocked_pawns -= black_blockers.count_ones() as i32;
+
+    BLOCKED_PAWN_WEIGHT * blocked_pawns as f32
 }

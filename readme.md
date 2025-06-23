@@ -14,7 +14,7 @@ Scamorza can generate legal moves and pick one at random.
 
 - [x] Bitboard representation
 - [x] Legal move generation
-- [ ] Evaluation function
+- [x] Evaluation function
 - [ ] Search algorithm (minimax / alpha-beta)
 - [ ] UCI protocol support
 - [ ] Beat the author in a game ♔

@@ -12,6 +12,7 @@ mod eval {
                 eval_material: true,
                 eval_doubled_pawns: false,
                 eval_isolated_pawns: false,
+                eval_blocked_pawns: false,
             };
             evaluator.eval_board(chess_board)
         }
@@ -71,6 +72,7 @@ mod eval {
                 eval_material: false,
                 eval_doubled_pawns: true,
                 eval_isolated_pawns: false,
+                eval_blocked_pawns: false,
             };
             evaluator.eval_board(chess_board)
         }
@@ -130,6 +132,7 @@ mod eval {
                 eval_material: false,
                 eval_doubled_pawns: false,
                 eval_isolated_pawns: true,
+                eval_blocked_pawns: false,
             };
             evaluator.eval_board(chess_board)
         }
@@ -170,6 +173,50 @@ mod eval {
                 "PpPpPpPp/PpPpPpPp/PpPpPpPp/PpPpPpPp/PpPpPpPp/PpPpPpPp/PpPpPpPp/PPPPPPPP w KQkq -  ",
             ).unwrap();
             assert_eq!(eval_isolated_pawns(&board), 14.0);
+        }
+    }
+
+    mod blocked_pawns {
+        use super::*;
+
+        fn eval_blocked_pawns(chess_board: &ChessBoard) -> BoardScore {
+            let evaluator = BoardEvaluator {
+                eval_material: false,
+                eval_doubled_pawns: false,
+                eval_isolated_pawns: false,
+                eval_blocked_pawns: true,
+            };
+            evaluator.eval_board(chess_board)
+        }
+
+        #[test]
+        fn eval_initial_board() {
+            let board = ChessBoard::default();
+            assert_eq!(eval_blocked_pawns(&board), 0.0);
+        }
+
+        #[test]
+        fn eval_board_1() {
+            let board = ChessBoard::from_str(
+                "8/pppppppp/8/8/8/rnbqkbnr/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            ).unwrap();
+            assert_eq!(eval_blocked_pawns(&board), -4.0);
+        }
+
+        #[test]
+        fn eval_board_2() {
+            let board = ChessBoard::from_str(
+                "rnbqkb1r/1p3pp1/1N1p4/p2P1n1p/P3pP1P/1Pp5/2P1P1P1/R1BQKBNR b KQkq h3 0 1",
+            ).unwrap();
+            assert_eq!(eval_blocked_pawns(&board), 0.0);
+        }
+
+        #[test]
+        fn eval_board_3() {
+            let board = ChessBoard::from_str(
+                "rnbqkbn1/4p3/4p3/4p3/4p3/4p3/PPP1pPPP/RNBQKBNR w KQkq - 0 1",
+            ).unwrap();
+            assert_eq!(eval_blocked_pawns(&board), 3.0);
         }
     }
 }

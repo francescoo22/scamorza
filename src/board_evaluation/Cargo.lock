@@ -6,7 +6,7 @@ version = 4
 name = "board_evaluation"
 version = "0.1.0"
 dependencies = [
-    "board_representation",
+ "board_representation",
 ]
 
 [[package]]
