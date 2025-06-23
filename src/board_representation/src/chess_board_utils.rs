@@ -107,3 +107,14 @@ impl ChessBoard {
         king_bit_board.trailing_zeros() as SquareIndex
     }
 }
+
+pub const FILE_MASK: [u64; 8] = [
+    0x0101010101010101, // FILE A
+    0x0202020202020202, // FILE B
+    0x0404040404040404, // FILE C
+    0x0808080808080808, // FILE D
+    0x1010101010101010, // FILE E
+    0x2020202020202020, // FILE F
+    0x4040404040404040, // FILE G
+    0x8080808080808080, // FILE H
+];

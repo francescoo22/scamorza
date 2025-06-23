@@ -11,6 +11,7 @@ mod eval {
             let evaluator = BoardEvaluator {
                 eval_material: true,
                 eval_doubled_pawns: false,
+                eval_isolated_pawns: false,
             };
             evaluator.eval_board(chess_board)
         }
@@ -69,6 +70,7 @@ mod eval {
             let evaluator = BoardEvaluator {
                 eval_material: false,
                 eval_doubled_pawns: true,
+                eval_isolated_pawns: false,
             };
             evaluator.eval_board(chess_board)
         }
@@ -117,6 +119,57 @@ mod eval {
                 "pppppppp/PPPPPPPP/pppppppp/PPPPPPPP/pppppppp/pppppppp/PPPPPPPP/PPPPPPPP w KQkq -  ",
             ).unwrap();
             assert_eq!(eval_doubled_pawns(&board), 0.0);
+        }
+    }
+
+    mod isolated_pawns {
+        use super::*;
+
+        fn eval_isolated_pawns(chess_board: &ChessBoard) -> BoardScore {
+            let evaluator = BoardEvaluator {
+                eval_material: false,
+                eval_doubled_pawns: false,
+                eval_isolated_pawns: true,
+            };
+            evaluator.eval_board(chess_board)
+        }
+
+        #[test]
+        fn eval_initial_board() {
+            let board = ChessBoard::default();
+            assert_eq!(eval_isolated_pawns(&board), 0.0);
+        }
+
+        #[test]
+        fn eval_board_1() {
+            let board = ChessBoard::from_str(
+                "p1p1p1pp/8/8/8/8/8/8/8 w KQkq -  ",
+            ).unwrap();
+            assert_eq!(eval_isolated_pawns(&board), 1.5);
+        }
+
+        #[test]
+        fn eval_board_3() {
+            let board = ChessBoard::from_str(
+                "8/8/PPPPPP1P/8/PPPPPP1P/8/8/PPPPPP1P w KQkq -  ",
+            ).unwrap();
+            assert_eq!(eval_isolated_pawns(&board), -1.5);
+        }
+
+        #[test]
+        fn eval_board_4() {
+            let board = ChessBoard::from_str(
+                "8/8/PPPPPP1P/p7/PPPPPP1P/p7/p7/PPPPPP1P w KQkq -  ",
+            ).unwrap();
+            assert_eq!(eval_isolated_pawns(&board), 0.0);
+        }
+
+        #[test]
+        fn eval_board_5() {
+            let board = ChessBoard::from_str(
+                "PpPpPpPp/PpPpPpPp/PpPpPpPp/PpPpPpPp/PpPpPpPp/PpPpPpPp/PpPpPpPp/PPPPPPPP w KQkq -  ",
+            ).unwrap();
+            assert_eq!(eval_isolated_pawns(&board), 14.0);
         }
     }
 }

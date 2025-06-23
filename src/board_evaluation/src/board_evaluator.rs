@@ -1,11 +1,13 @@
-use crate::evaluation_constants::{BISHOP_WEIGHT, DOUBLED_PAWN_WEIGHT, KING_WEIGHT, KNIGHT_WEIGHT, PAWN_WEIGHT, QUEEN_WEIGHT, ROOK_WEIGHT};
+use crate::evaluation_constants::{BISHOP_WEIGHT, DOUBLED_PAWN_WEIGHT, ISOLATED_PAWN_WEIGHT, KING_WEIGHT, KNIGHT_WEIGHT, PAWN_WEIGHT, QUEEN_WEIGHT, ROOK_WEIGHT};
 use board_representation::chess_board::ChessBoard;
+use board_representation::chess_board_utils::FILE_MASK;
 
 pub type BoardScore = f32;
 
 pub struct BoardEvaluator {
     pub eval_material: bool,
     pub eval_doubled_pawns: bool,
+    pub eval_isolated_pawns: bool,
 }
 
 impl BoardEvaluator {
@@ -16,6 +18,9 @@ impl BoardEvaluator {
         }
         if self.eval_doubled_pawns {
             score += eval_doubled_pawns(chess_board)
+        }
+        if self.eval_isolated_pawns {
+            score += eval_isolated_pawns(chess_board)
         }
         score
     }
@@ -44,10 +49,9 @@ fn eval_material(chess_board: &ChessBoard) -> BoardScore {
 }
 
 fn eval_doubled_pawns(chess_board: &ChessBoard) -> BoardScore {
-    let mut current_file = 0x0101010101010101;
     let mut doubled_pawns: i32 = 0;
-    for _ in 0..8 {
-        let pawns_on_file = chess_board.pawns & current_file;
+    for i in 0..8 {
+        let pawns_on_file = chess_board.pawns & FILE_MASK[i];
         let white_pawns = (pawns_on_file & chess_board.white_pieces).count_ones() as i32;
         let black_pawns = (pawns_on_file & chess_board.black_pieces).count_ones() as i32;
         if white_pawns > 1 {
@@ -56,7 +60,34 @@ fn eval_doubled_pawns(chess_board: &ChessBoard) -> BoardScore {
         if black_pawns > 1 {
             doubled_pawns -= black_pawns
         }
-        current_file <<= 1;
     }
     DOUBLED_PAWN_WEIGHT * doubled_pawns as f32
+}
+
+fn eval_isolated_pawns(chess_board: &ChessBoard) -> BoardScore {
+    let mut isolated_pawns = 0;
+    let mut white_pawns_on_file: [i32; 8] = [0; 8];
+    let mut black_pawns_on_file: [i32; 8] = [0; 8];
+    for file in 0..8 {
+        let pawns_on_file = chess_board.pawns & FILE_MASK[file];
+        white_pawns_on_file[file] = (pawns_on_file & chess_board.white_pieces).count_ones() as i32;
+        black_pawns_on_file[file] = (pawns_on_file & chess_board.black_pieces).count_ones() as i32;
+    }
+    for file in 0..8 {
+        if white_pawns_on_file[file] > 0 {
+            let pawns_on_the_left = if file > 0 { white_pawns_on_file[file - 1] } else { 0 };
+            let pawns_on_the_right = if file < 7 { white_pawns_on_file[file + 1] } else { 0 };
+            if pawns_on_the_left == 0 && pawns_on_the_right == 0 {
+                isolated_pawns += white_pawns_on_file[file];
+            }
+        }
+        if black_pawns_on_file[file] > 0 {
+            let pawns_on_the_left = if file > 0 { black_pawns_on_file[file - 1] } else { 0 };
+            let pawns_on_the_right = if file < 7 { black_pawns_on_file[file + 1] } else { 0 };
+            if pawns_on_the_left == 0 && pawns_on_the_right == 0 {
+                isolated_pawns -= black_pawns_on_file[file];
+            }
+        }
+    }
+    ISOLATED_PAWN_WEIGHT * isolated_pawns as f32
 }
