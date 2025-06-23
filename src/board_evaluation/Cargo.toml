@@ -1,0 +1,7 @@
+[package]
+name = "board_evaluation"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+board_representation = { path = "../board_representation" }

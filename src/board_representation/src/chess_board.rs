@@ -23,15 +23,15 @@ type BitBoard = u64;
 
 #[derive(Clone, Copy)]
 pub struct ChessBoard {
-    pub(crate) white_pieces: BitBoard,
-    pub(crate) black_pieces: BitBoard,
+    pub white_pieces: BitBoard,
+    pub black_pieces: BitBoard,
 
-    pub(crate) pawns: BitBoard,
-    pub(crate) knights: BitBoard,
-    pub(crate) bishops: BitBoard,
-    pub(crate) rooks: BitBoard,
-    pub(crate) queens: BitBoard,
-    pub(crate) kings: BitBoard,
+    pub pawns: BitBoard,
+    pub knights: BitBoard,
+    pub bishops: BitBoard,
+    pub rooks: BitBoard,
+    pub queens: BitBoard,
+    pub kings: BitBoard,
 
     /// bit 0: can_white_castle_kingside.
     /// bit 1: can_white_castle_queenside.

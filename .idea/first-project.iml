@@ -6,9 +6,12 @@
       <sourceFolder url="file://$MODULE_DIR$/src/board_representation/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/moves_generation/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/moves_generation/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/board_evaluation/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/board_evaluation/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/src/board_representation/target" />
       <excludeFolder url="file://$MODULE_DIR$/src/moves_generation/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
+      <excludeFolder url="file://$MODULE_DIR$/src/board_evaluation/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
