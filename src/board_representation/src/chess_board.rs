@@ -278,7 +278,7 @@ impl FromStr for ChessBoard {
                             ),
                         };
 
-                        let square_mask = 1 << ((7 - i) * 8 + 7 - j);
+                        let square_mask = 1 << ((7 - i) * 8 + j);
                         match piece.color {
                             Color::White => white_pieces |= square_mask,
                             Color::Black => black_pieces |= square_mask,

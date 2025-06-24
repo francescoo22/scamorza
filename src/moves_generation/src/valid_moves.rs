@@ -150,8 +150,8 @@ fn is_kingside_castle_possible(board: &ChessBoard, color: &Color) -> bool {
     }
 
     let empty_square_indexes = match color {
-        Color::White => [1, 2],
-        Color::Black => [57, 58],
+        Color::White => [5, 6],
+        Color::Black => [61, 62],
     };
     for index in empty_square_indexes {
         if board.at(index) != Square::Empty {
@@ -160,8 +160,8 @@ fn is_kingside_castle_possible(board: &ChessBoard, color: &Color) -> bool {
     }
 
     let non_checked_square_indexes = match color {
-        Color::White => [1, 2, 3],
-        Color::Black => [57, 58, 59],
+        Color::White => [4, 5, 6],
+        Color::Black => [60, 61, 62],
     };
     for index in non_checked_square_indexes {
         if is_square_checked(board, index, *color) {
@@ -182,8 +182,8 @@ fn is_queenside_castle_possible(board: &ChessBoard, color: &Color) -> bool {
     }
 
     let empty_square_indexes = match color {
-        Color::White => [4, 5, 6],
-        Color::Black => [60, 61, 62],
+        Color::White => [1, 2, 3],
+        Color::Black => [57, 58, 59],
     };
     for index in empty_square_indexes {
         if board.at(index) != Square::Empty {
@@ -192,8 +192,8 @@ fn is_queenside_castle_possible(board: &ChessBoard, color: &Color) -> bool {
     }
 
     let non_checked_square_indexes = match color {
-        Color::White => [3, 4, 5],
-        Color::Black => [59, 60, 61],
+        Color::White => [2, 3, 4],
+        Color::Black => [58, 59, 60],
     };
     for index in non_checked_square_indexes {
         if is_square_checked(board, index, *color) {
@@ -243,15 +243,15 @@ pub fn all_valid_moves(board: &ChessBoard, color: Color) -> Vec<Move> {
     let mut moves = filter_king_going_under_check(board, all_possible_moves(board, color));
     if is_kingside_castle_possible(board, &color) {
         let (from, to) = match color {
-            Color::White => (3, 1),
-            Color::Black => (59, 57),
+            Color::White => (4, 6),
+            Color::Black => (60, 62),
         };
         moves.push(Move::base_move(from, to))
     }
     if is_queenside_castle_possible(board, &color) {
         let (from, to) = match color {
-            Color::White => (3, 5),
-            Color::Black => (59, 61),
+            Color::White => (4, 2),
+            Color::Black => (60, 58),
         };
         moves.push(Move::base_move(from, to))
     }

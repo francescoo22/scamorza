@@ -75,15 +75,15 @@ impl Move {
 
     fn castle_invalidation(&self, board: &mut ChessBoard) {
         match self.from {
-            0 => board.set_white_castle_kingside(false),
-            7 => board.set_white_castle_queenside(false),
-            56 => board.set_black_castle_kingside(false),
-            63 => board.set_black_castle_queenside(false),
-            3 => {
+            0 => board.set_white_castle_queenside(false),
+            7 => board.set_white_castle_kingside(false),
+            56 => board.set_black_castle_queenside(false),
+            63 => board.set_black_castle_kingside(false),
+            4 => {
                 board.set_white_castle_kingside(false);
                 board.set_white_castle_queenside(false);
             }
-            59 => {
+            60 => {
                 board.set_black_castle_kingside(false);
                 board.set_black_castle_queenside(false);
             }
@@ -91,10 +91,10 @@ impl Move {
         }
 
         match self.to {
-            0 => board.set_white_castle_kingside(false),
-            7 => board.set_white_castle_queenside(false),
-            56 => board.set_black_castle_kingside(false),
-            63 => board.set_black_castle_queenside(false),
+            0 => board.set_white_castle_queenside(false),
+            7 => board.set_white_castle_kingside(false),
+            56 => board.set_black_castle_queenside(false),
+            63 => board.set_black_castle_kingside(false),
             _ => {}
         }
     }
@@ -104,20 +104,20 @@ impl Move {
             return;
         }
 
-        if self.from == 3 {
-            if self.to == 1 {
-                board.set_at(2, Square::Occupied(WHITE_ROOK));
+        if self.from == 4 {
+            if self.to == 2 {
+                board.set_at(3, Square::Occupied(WHITE_ROOK));
                 board.set_at(0, Square::Empty)
-            } else if self.to == 5 {
-                board.set_at(4, Square::Occupied(WHITE_ROOK));
+            } else if self.to == 6 {
+                board.set_at(5, Square::Occupied(WHITE_ROOK));
                 board.set_at(7, Square::Empty)
             }
-        } else if self.from == 59 {
-            if self.to == 57 {
-                board.set_at(58, Square::Occupied(BLACK_ROOK));
+        } else if self.from == 60 {
+            if self.to == 58 {
+                board.set_at(59, Square::Occupied(BLACK_ROOK));
                 board.set_at(56, Square::Empty)
-            } else if self.to == 61 {
-                board.set_at(60, Square::Occupied(BLACK_ROOK));
+            } else if self.to == 62 {
+                board.set_at(61, Square::Occupied(BLACK_ROOK));
                 board.set_at(63, Square::Empty)
             }
         }
