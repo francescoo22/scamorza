@@ -44,12 +44,19 @@ pub struct ChessBoard {
 
 impl fmt::Display for ChessBoard {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        for index in 0..64 {
-            write!(f, " {}", self.at(index))?;
-            if index % 8 == 7 {
-                writeln!(f)?;
+        // printed as:
+        // a8 ... h8
+        // .........
+        // a1 ... h1
+        for rank in (0..8).rev() {
+            write!(f, "{} ", rank + 1)?; // Rank label
+            for file in 0..8 {
+                let index = rank * 8 + file;
+                write!(f, " {}", self.at(index))?;
             }
+            writeln!(f)?;
         }
+        writeln!(f, "   a b c d e f g h")?; // File labels
         Ok(())
     }
 }
