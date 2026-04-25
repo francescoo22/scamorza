@@ -3,8 +3,7 @@ use moves_generation::valid_moves::all_valid_moves;
 use std::str::FromStr;
 
 fn perft(depth: u8, chess_board: &ChessBoard) -> u64 {
-    let color = chess_board.current_turn();
-    let moves = all_valid_moves(chess_board, color);
+    let moves = all_valid_moves(chess_board);
     if depth == 1 {
         moves.len() as u64
     } else {

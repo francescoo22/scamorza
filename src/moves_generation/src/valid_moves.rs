@@ -215,8 +215,9 @@ fn piece_valid_moves(board: &ChessBoard, index: SquareIndex, piece: &Piece) -> V
     }
 }
 
-fn all_possible_moves(board: &ChessBoard, color: Color) -> Vec<Move> {
+fn all_possible_moves(board: &ChessBoard) -> Vec<Move> {
     let mut moves = Vec::new();
+    let color = board.current_turn();
     board.for_each_piece(|index, piece| {
         if piece.color == color {
             let valid_moves = piece_valid_moves(board, index, piece);
@@ -239,8 +240,9 @@ fn filter_king_going_under_check(board: &ChessBoard, moves: Vec<Move>) -> Vec<Mo
         .collect()
 }
 
-pub fn all_valid_moves(board: &ChessBoard, color: Color) -> Vec<Move> {
-    let mut moves = filter_king_going_under_check(board, all_possible_moves(board, color));
+pub fn all_valid_moves(board: &ChessBoard) -> Vec<Move> {
+    let mut moves = filter_king_going_under_check(board, all_possible_moves(board));
+    let color = board.current_turn();
     if is_kingside_castle_possible(board, &color) {
         let (from, to) = match color {
             Color::White => (4, 6),
